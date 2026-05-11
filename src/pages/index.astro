@@ -1,11 +1,20 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import HomePage from "../components/home/HomePage";
+import Footer from "../components/global/Footer.astro";
+import Navbar from "../components/global/Navbar.astro";
+import Sidebar from "../components/global/Sidebar.astro";
+import HomeLayout from "../layouts/HomeLayout.astro";
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<HomeLayout title="MyDevNotes">
+  <div class="min-h-screen flex flex-col">
+    <Navbar />
+    <div class="flex-1 w-full xl:pl-sidebar_width">
+      <Sidebar variant="home" />
+      <div class="w-full flex justify-center">
+        <HomePage />
+      </div>
+    </div>
+    <Footer />
+  </div>
+</HomeLayout>
