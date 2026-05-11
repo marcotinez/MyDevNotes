@@ -1,9 +1,8 @@
 ---
 const links = [
-  "Política de privacidad",
-  "Términos del servicio",
-  "Seguridad",
-  "Estado",
+  { label: "Home", href: "/" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/marcotinez/" },
+  { label: "GitHub", href: "https://github.com/marcotinez" },
 ];
 ---
 
@@ -13,10 +12,12 @@ const links = [
     <div class="flex flex-wrap justify-center gap-md mb-sm">
       {links.map((link) => (
         <a
-          href="#"
-          class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary underline transition-all opacity-90 hover:opacity-100 font-label-sm text-label-sm"
+          href={link.href}
+          target={link.href.startsWith("http") ? "_blank" : undefined}
+          rel={link.href.startsWith("http") ? "noreferrer noopener" : undefined}
+          class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors font-label-sm text-label-sm"
         >
-          {link}
+          {link.label}
         </a>
       ))}
     </div>
