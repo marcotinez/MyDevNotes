@@ -1,0 +1,25 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "MyDevNotes" } = Astro.props;
+import "../styles/wiki.css";
+import TailwindHead from "../components/global/TailwindHead.astro";
+---
+
+<!doctype html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <TailwindHead />
+  </head>
+  <body
+    class="min-h-screen flex flex-col font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container"
+  >
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,794 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap");
+
+:root {
+  --bg: #faf8ff;
+  --surface: #ffffff;
+  --surface-subtle: #f3f3fe;
+  --surface-muted: #ededf9;
+  --text: #191b23;
+  --text-muted: #434655;
+  --text-soft: #57657a;
+  --line: #c3c6d7;
+  --primary: #004ac6;
+  --primary-strong: #003ea8;
+  --primary-soft: #dbe1ff;
+  --success: #0f766e;
+  --success-bg: #dff7f3;
+  --warning: #8a4500;
+  --warning-bg: #ffe9d9;
+  --danger: #b42318;
+  --danger-bg: #ffe2df;
+  --info: #1d4ed8;
+  --info-bg: #e7eeff;
+  --code-bg: #0f172a;
+  --code-text: #e2e8f0;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --shadow-soft: 0 8px 24px rgba(22, 36, 73, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Source Serif 4", serif;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-strong);
+}
+
+.wiki-shell {
+  min-height: 100vh;
+}
+
+.wiki-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.wiki-topbar-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem;
+}
+
+.wiki-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+}
+
+.brand {
+  font-family: "Geist", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+
+.curated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-subtle);
+  padding: 0.2rem 0.46rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.curated-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.66rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: #fff;
+}
+
+.app-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-left: 0.45rem;
+}
+
+.app-nav-links a {
+  font-family: "Geist", sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.app-nav-links a:hover {
+  color: var(--primary);
+}
+
+.wiki-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.wiki-search-wrap {
+  position: relative;
+}
+
+.nav-icon {
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #8d93a8;
+}
+
+.app-version {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.14rem 0.45rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.73rem;
+  color: var(--text-soft);
+  background: var(--surface-muted);
+}
+
+.wiki-search {
+  width: 100%;
+  min-width: 220px;
+  max-width: 360px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem 0.45rem 1.95rem;
+  background: var(--surface);
+  color: var(--text);
+  font-family: "Geist", sans-serif;
+  font-size: 0.82rem;
+}
+
+.wiki-search:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  border-color: var(--primary);
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.icon-btn span {
+  font-size: 20px;
+}
+
+.icon-btn:hover {
+  color: var(--primary);
+}
+
+.wiki-main {
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 250px;
+  max-width: 1400px;
+}
+
+.wiki-main-home {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+
+.sidebar {
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow: auto;
+  border-right: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 65%, var(--surface-subtle));
+  padding: 1.3rem 0.8rem 1.2rem;
+}
+
+.sidebar-header {
+  margin-bottom: 1.2rem;
+  padding: 0 0.45rem;
+}
+
+.eyebrow {
+  margin: 0;
+  font-family: "Geist", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.sidebar-title {
+  margin: 0.35rem 0 0;
+  font-family: "Geist", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sidebar-group {
+  margin-bottom: 0.9rem;
+}
+
+.sidebar-group-title {
+  margin: 0 0 0.4rem;
+  padding: 0 0.45rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.7rem;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.sidebar-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.1rem 0;
+  padding: 0.4rem 0.5rem;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-family: "Geist", sans-serif;
+  font-size: 0.82rem;
+}
+
+.sidebar-icon {
+  font-size: 1rem;
+}
+
+.sidebar-item:hover {
+  background: var(--surface-muted);
+  color: var(--primary);
+}
+
+.sidebar-item.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.wiki-content-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem 1.5rem 1.5rem;
+  min-width: 0;
+}
+
+.wiki-content {
+  width: 100%;
+  max-width: 768px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-bottom: 4rem;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  position: sticky;
+  top: 64px;
+  z-index: 20;
+  background: var(--bg);
+  padding: 0.5rem 0;
+  margin: 0;
+  font-family: "Geist", sans-serif;
+  font-size: 0.75rem;
+  color: #737686;
+}
+
+.breadcrumb-link {
+  color: #737686;
+}
+
+.breadcrumb-link:last-of-type {
+  color: var(--text);
+}
+
+.breadcrumb-separator {
+  color: var(--line);
+}
+
+.article-header h1 {
+  margin: 0;
+  font-family: "Geist", sans-serif;
+  font-size: clamp(1.7rem, 2.7vw, 2.3rem);
+  letter-spacing: -0.02em;
+}
+
+.article-description {
+  margin: 0.55rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.article-meta {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+
+.meta-pill {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.2rem 0.56rem;
+  font-size: 0.72rem;
+  font-family: "Geist", sans-serif;
+  color: var(--text-soft);
+  background: var(--surface);
+}
+
+.article-body {
+  margin-top: 0;
+  font-size: 1.03rem;
+  line-height: 1.72;
+}
+
+.article-body :is(h2, h3, h4) {
+  font-family: "Geist", sans-serif;
+  letter-spacing: -0.01em;
+  margin-top: 1.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.article-body h2 {
+  font-size: 1.42rem;
+}
+
+.article-body h3 {
+  font-size: 1.18rem;
+}
+
+.article-body pre {
+  overflow: auto;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  background: var(--code-bg);
+  color: var(--code-text);
+  box-shadow: var(--shadow-soft);
+}
+
+.article-body code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.87rem;
+}
+
+.article-body :not(pre) > code {
+  border-radius: 5px;
+  background: var(--surface-muted);
+  padding: 0.13rem 0.28rem;
+}
+
+.toc {
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow: auto;
+  padding: 2.5rem 0.9rem 0.9rem;
+  font-family: "Geist", sans-serif;
+}
+
+.toc-title {
+  margin: 0;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-soft);
+}
+
+.toc-empty {
+  margin-top: 0.8rem;
+  color: var(--text-soft);
+  font-size: 0.8rem;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0 0 0 0.7rem;
+  margin: 0.7rem 0 0;
+  border-left: 1px solid var(--line);
+}
+
+.toc-list li {
+  margin: 0;
+}
+
+.toc-list a {
+  display: block;
+  color: var(--text-muted);
+  padding: 0.22rem 0;
+  font-size: 0.8rem;
+}
+
+.toc-list a:hover {
+  color: var(--primary);
+}
+
+.toc-list .depth-3 a {
+  padding-left: 0.65rem;
+  font-size: 0.77rem;
+}
+
+.callout {
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+}
+
+.callout-title {
+  margin: 0 0 0.35rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.callout :last-child {
+  margin-bottom: 0;
+}
+
+.callout-info {
+  background: var(--info-bg);
+  border-left-color: var(--info);
+}
+
+.callout-tip {
+  background: var(--success-bg);
+  border-left-color: var(--success);
+}
+
+.callout-warning {
+  background: var(--warning-bg);
+  border-left-color: var(--warning);
+}
+
+.callout-danger {
+  background: var(--danger-bg);
+  border-left-color: var(--danger);
+}
+
+.checklist {
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.checklist li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--success);
+  font-family: "Geist", sans-serif;
+  font-weight: 700;
+}
+
+.comparison-wrapper {
+  overflow: auto;
+  margin: 1.2rem 0;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+}
+
+.comparison-table th,
+.comparison-table td {
+  border: 1px solid var(--line);
+  padding: 0.62rem;
+  text-align: left;
+}
+
+.comparison-table th {
+  font-family: "Geist", sans-serif;
+  background: var(--surface-subtle);
+}
+
+.tabs {
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.tabs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  border-bottom: 1px solid var(--line);
+  padding: 0.5rem;
+  background: var(--surface-subtle);
+}
+
+.tab {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: "Geist", sans-serif;
+  font-size: 0.8rem;
+}
+
+.tab.active {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.tabs-panel {
+  padding: 0.85rem;
+}
+
+.nav-cards {
+  margin-top: 0.5rem;
+}
+
+.nav-cards h2 {
+  margin: 0 0 0.85rem;
+  font-family: "Geist", sans-serif;
+  font-size: 1rem;
+}
+
+.nav-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.65rem;
+}
+
+.nav-card {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 0.8rem;
+}
+
+.nav-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-soft);
+}
+
+.nav-card-title {
+  margin: 0 0 0.35rem;
+  font-family: "Geist", sans-serif;
+  font-size: 0.89rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.nav-card-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.article-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--primary);
+}
+
+.pager-link-next {
+  text-align: right;
+}
+
+.pager-label {
+  font-family: "Geist", sans-serif;
+  font-size: 0.73rem;
+  color: #8d93a8;
+}
+
+.pager-title {
+  font-family: "Geist", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.app-footer {
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  margin-top: 2rem;
+}
+
+.app-footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1.6rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.app-footer-brand {
+  font-family: "Geist", sans-serif;
+  font-size: 1rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.app-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.app-footer-links a {
+  font-family: "Geist", sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.app-footer-copy {
+  font-family: "Geist", sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.wiki-home {
+  max-width: 780px;
+  margin: 1.6rem auto;
+  padding: 0 1.2rem 2rem;
+}
+
+.wiki-home h1 {
+  margin: 0 0 0.75rem;
+  font-family: "Geist", sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.wiki-home p {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.wiki-home-grid {
+  margin-top: 1.4rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.7rem;
+}
+
+.wiki-home-card {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  background: var(--surface);
+}
+
+.wiki-home-card-title {
+  margin: 0 0 0.35rem;
+  font-family: "Geist", sans-serif;
+  color: var(--text);
+}
+
+.wiki-home-card-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 1090px) {
+  .wiki-main {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .toc {
+    display: none;
+  }
+
+}
+
+@media (max-width: 860px) {
+  .wiki-topbar {
+    position: static;
+  }
+
+  .wiki-main {
+    display: block;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .wiki-content {
+    padding: 0 0 3rem;
+  }
+
+  .wiki-content-wrap {
+    padding: 1rem 1rem 1rem;
+  }
+
+  .curated-badge {
+    display: none;
+  }
+
+  .app-nav-links {
+    display: none;
+  }
+
+  .wiki-search-wrap {
+    display: none;
+  }
+
+  .app-version {
+    display: none;
+  }
+
+  .icon-btn {
+    display: none;
+  }
+}

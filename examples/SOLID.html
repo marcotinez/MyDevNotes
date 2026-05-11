@@ -1,0 +1,625 @@
+<!doctype html>
+
+<html class="light" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>SOLID Principles - DocsEngine</title>
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Source+Serif+4:wght@400;600&amp;family=JetBrains+Mono:wght@400&amp;family=Caveat:wght@400;500;600;700&amp;display=swap"
+            rel="stylesheet"
+        />
+        <script id="tailwind-config">
+            tailwind.config = {
+                darkMode: "class",
+                theme: {
+                    extend: {
+                        colors: {
+                            "surface-dim": "#d9d9e5",
+                            "outline-variant": "#c3c6d7",
+                            "surface-bright": "#faf8ff",
+                            "tertiary-container": "#bc4800",
+                            "inverse-surface": "#2e3039",
+                            "on-background": "#191b23",
+                            surface: "#faf8ff",
+                            "primary-fixed": "#dbe1ff",
+                            "surface-tint": "#0053db",
+                            "on-primary-fixed": "#00174b",
+                            "on-surface-variant": "#434655",
+                            "primary-fixed-dim": "#b4c5ff",
+                            "surface-container-lowest": "#ffffff",
+                            "on-error": "#ffffff",
+                            "secondary-fixed": "#d5e3fc",
+                            "on-tertiary": "#ffffff",
+                            "surface-container-low": "#f3f3fe",
+                            "secondary-container": "#d5e3fc",
+                            "tertiary-fixed": "#ffdbcd",
+                            primary: "#004ac6",
+                            "on-primary": "#ffffff",
+                            "on-primary-container": "#eeefff",
+                            "secondary-fixed-dim": "#b9c7df",
+                            "error-container": "#ffdad6",
+                            outline: "#737686",
+                            error: "#ba1a1a",
+                            "on-error-container": "#93000a",
+                            "on-tertiary-container": "#ffede6",
+                            "on-secondary-fixed-variant": "#3a485b",
+                            "inverse-primary": "#b4c5ff",
+                            "on-tertiary-fixed-variant": "#7d2d00",
+                            background: "#faf8ff",
+                            "tertiary-fixed-dim": "#ffb596",
+                            "on-primary-fixed-variant": "#003ea8",
+                            "surface-container-high": "#e7e7f3",
+                            "on-secondary": "#ffffff",
+                            "on-secondary-fixed": "#0d1c2e",
+                            "on-surface": "#191b23",
+                            tertiary: "#943700",
+                            "surface-container-highest": "#e1e2ed",
+                            "inverse-on-surface": "#f0f0fb",
+                            "on-tertiary-fixed": "#360f00",
+                            secondary: "#515f74",
+                            "primary-container": "#2563eb",
+                            "surface-container": "#ededf9",
+                            "surface-variant": "#e1e2ed",
+                            "on-secondary-container": "#57657a",
+                        },
+                        borderRadius: {
+                            DEFAULT: "0.125rem",
+                            lg: "0.25rem",
+                            xl: "0.5rem",
+                            full: "0.75rem",
+                        },
+                        spacing: {
+                            content_max_width: "768px",
+                            xl: "40px",
+                            lg: "24px",
+                            xs: "4px",
+                            md: "16px",
+                            sidebar_width: "280px",
+                            sm: "8px",
+                            base: "4px",
+                            container_max_width: "1280px",
+                        },
+                        fontFamily: {
+                            "headline-md": ["Geist"],
+                            "headline-xl": ["Geist"],
+                            "headline-lg": ["Geist"],
+                            "label-md": ["Geist"],
+                            "body-md": ["Source Serif 4"],
+                            "body-lg": ["Source Serif 4"],
+                            "code-block": ["JetBrains Mono"],
+                            "label-sm": ["Geist"],
+                            handwriting: ["Caveat", "cursive"],
+                        },
+                        fontSize: {
+                            "headline-md": [
+                                "24px",
+                                {
+                                    lineHeight: "32px",
+                                    fontWeight: "600",
+                                },
+                            ],
+                            "headline-xl": [
+                                "36px",
+                                {
+                                    lineHeight: "44px",
+                                    letterSpacing: "-0.02em",
+                                    fontWeight: "700",
+                                },
+                            ],
+                            "headline-lg": [
+                                "30px",
+                                {
+                                    lineHeight: "38px",
+                                    letterSpacing: "-0.01em",
+                                    fontWeight: "600",
+                                },
+                            ],
+                            "label-md": [
+                                "14px",
+                                {
+                                    lineHeight: "20px",
+                                    fontWeight: "500",
+                                },
+                            ],
+                            "body-md": [
+                                "16px",
+                                {
+                                    lineHeight: "26px",
+                                    fontWeight: "400",
+                                },
+                            ],
+                            "body-lg": [
+                                "18px",
+                                {
+                                    lineHeight: "30px",
+                                    fontWeight: "400",
+                                },
+                            ],
+                            "code-block": [
+                                "14px",
+                                {
+                                    lineHeight: "24px",
+                                    fontWeight: "400",
+                                },
+                            ],
+                            "label-sm": [
+                                "12px",
+                                {
+                                    lineHeight: "16px",
+                                    letterSpacing: "0.02em",
+                                    fontWeight: "500",
+                                },
+                            ],
+                        },
+                    },
+                },
+            };
+        </script>
+    </head>
+    <body
+        class="bg-surface text-on-surface min-h-screen flex flex-col font-body-md text-body-md"
+    >
+        <!-- TopNavBar -->
+        <header
+            class="bg-surface dark:bg-inverse-surface border-b border-outline-variant dark:border-outline docked full-width top-0 sticky z-50 flex justify-between items-center w-full px-lg h-16"
+        >
+            <div class="flex items-center gap-md">
+                <span
+                    class="font-headline-md text-headline-md font-bold text-primary dark:text-inverse-primary"
+                    >DocsEngine</span
+                >
+                <div
+                    class="hidden md:flex items-center gap-sm bg-surface-container py-xs px-sm rounded-full ml-xs border border-outline-variant shadow-sm"
+                >
+                    <div
+                        class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-on-primary text-[12px] font-bold"
+                    >
+                        AL
+                    </div>
+                    <span
+                        class="font-label-sm text-label-sm text-on-surface-variant font-medium"
+                        >Curated by Alex</span
+                    >
+                </div>
+                <nav class="hidden md:flex gap-md ml-lg">
+                    <a
+                        class="text-primary dark:text-inverse-primary font-bold border-b-2 border-primary font-label-md text-label-md cursor-pointer active:opacity-80"
+                        href="#"
+                        >Notebook</a
+                    >
+                    <a
+                        class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors font-label-md text-label-md cursor-pointer active:opacity-80"
+                        href="#"
+                        >API</a
+                    >
+                    <a
+                        class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors font-label-md text-label-md cursor-pointer active:opacity-80"
+                        href="#"
+                        >Changelog</a
+                    >
+                    <a
+                        class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors font-label-md text-label-md cursor-pointer active:opacity-80"
+                        href="#"
+                        >Community</a
+                    >
+                </nav>
+            </div>
+            <div class="flex items-center gap-md">
+                <div class="hidden md:flex relative text-on-surface-variant">
+                    <span
+                        class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-[20px]"
+                        >search</span
+                    >
+                    <input
+                        class="pl-xl pr-sm py-sm rounded-lg border border-outline-variant bg-surface-container-lowest focus:outline-none focus:border-primary font-label-md text-label-md w-64 text-on-surface"
+                        placeholder="Search notes..."
+                        type="text"
+                    />
+                </div>
+                <span
+                    class="text-on-surface-variant dark:text-outline-variant font-label-md text-label-md"
+                    >v2.4.0</span
+                >
+                <button
+                    class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors cursor-pointer active:opacity-80"
+                >
+                    <span class="material-symbols-outlined">dark_mode</span>
+                </button>
+                <button
+                    class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors cursor-pointer active:opacity-80"
+                >
+                    <span class="material-symbols-outlined">language</span>
+                </button>
+            </div>
+        </header>
+        <div class="flex flex-1 max-w-container_max_width mx-auto w-full">
+            <!-- SideNavBar -->
+            <aside
+                class="hidden md:flex flex-col p-md gap-xs bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline docked left-0 w-sidebar_width h-[calc(100vh-64px)] sticky top-16 overflow-y-auto"
+            >
+                <div class="mb-lg px-sm">
+                    <h2
+                        class="font-headline-md text-headline-md font-extrabold text-primary dark:text-inverse-primary"
+                    >
+                        Alex's Notes
+                    </h2>
+                    <p
+                        class="text-on-surface-variant dark:text-outline-variant font-label-md text-label-md"
+                    >
+                        Curated Technical Reference
+                    </p>
+                </div>
+                <nav class="flex flex-col gap-xs">
+                    <a
+                        class="flex items-center gap-sm px-sm py-xs text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all scale-95 active:scale-100 font-label-md text-label-md rounded-lg"
+                        href="#"
+                    >
+                        <span class="material-symbols-outlined text-[20px]"
+                            >info</span
+                        >
+                        Introduction
+                    </a>
+                    <a
+                        class="flex items-center gap-sm px-sm py-xs text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all scale-95 active:scale-100 font-label-md text-label-md rounded-lg"
+                        href="#"
+                    >
+                        <span class="material-symbols-outlined text-[20px]"
+                            >rocket_launch</span
+                        >
+                        Quickstart
+                    </a>
+                    <a
+                        class="flex items-center gap-sm px-sm py-xs bg-secondary-container dark:bg-secondary-fixed-dim text-on-secondary-container dark:text-on-secondary-fixed rounded-full font-medium transition-all scale-95 active:scale-100 font-label-md text-label-md"
+                        href="#"
+                    >
+                        <span class="material-symbols-outlined text-[20px]"
+                            >account_tree</span
+                        >
+                        Core Concepts
+                    </a>
+                    <a
+                        class="flex items-center gap-sm px-sm py-xs text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all scale-95 active:scale-100 font-label-md text-label-md rounded-lg"
+                        href="#"
+                    >
+                        <span class="material-symbols-outlined text-[20px]"
+                            >psychology</span
+                        >
+                        Advanced Guides
+                    </a>
+                    <a
+                        class="flex items-center gap-sm px-sm py-xs text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-all scale-95 active:scale-100 font-label-md text-label-md rounded-lg"
+                        href="#"
+                    >
+                        <span class="material-symbols-outlined text-[20px]"
+                            >auto_awesome</span
+                        >
+                        Deployment
+                    </a>
+                </nav>
+                <div class="mt-auto pt-lg">
+                    <button
+                        class="w-full bg-primary text-on-primary py-sm rounded-lg font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-sm"
+                    >
+                        Get Started
+                    </button>
+                </div>
+            </aside>
+            <!-- Main Content Area -->
+            <main class="flex-1 flex justify-center px-lg py-xl">
+                <div
+                    class="max-w-content_max_width w-full flex flex-col gap-xl"
+                >
+                    <!-- Breadcrumbs -->
+                    <nav
+                        class="flex items-center gap-sm font-label-sm text-label-sm text-outline sticky top-[64px] bg-surface z-40 py-sm"
+                    >
+                        <a class="hover:text-primary transition-colors" href="#"
+                            >Notes</a
+                        >
+                        <span>/</span>
+                        <a class="hover:text-primary transition-colors" href="#"
+                            >Core Concepts</a
+                        >
+                        <span>/</span>
+                        <span class="text-on-surface">SOLID Principles</span>
+                    </nav>
+                    <!-- Article Header -->
+                    <header class="flex flex-col gap-md">
+                        <h1
+                            class="font-headline-xl text-headline-xl text-on-background"
+                        >
+                            SOLID Principles
+                        </h1>
+                        <p
+                            class="font-body-lg text-body-lg text-on-surface-variant"
+                        >
+                            A deep dive into the five foundational principles of
+                            object-oriented class design, essential for writing
+                            maintainable and scalable software.
+                        </p>
+                    </header>
+                    <!-- TL;DR Callout -->
+                    <div
+                        class="border-l-4 border-primary bg-[#e6f0ff] p-md rounded-r-lg shadow-sm"
+                    >
+                        <h3
+                            class="font-label-md text-label-md text-primary-fixed-variant mb-sm flex items-center gap-xs"
+                        >
+                            <span class="material-symbols-outlined text-[18px]"
+                                >key</span
+                            >
+                            Key Takeaways: What actually matters in production
+                        </h3>
+                        <p class="font-body-md text-body-md text-on-surface">
+                            SOLID is an acronym for five design principles
+                            intended to make software designs more
+                            understandable, flexible, and maintainable: Single
+                            Responsibility, Open-Closed, Liskov Substitution,
+                            Interface Segregation, and Dependency Inversion.
+                        </p>
+                    </div>
+                    <!-- Author's Insight Sticky Note -->
+                    <div
+                        class="bg-[#fef08a] dark:bg-[#713f12] p-lg rounded-sm shadow-md -rotate-2 border border-[#fde047] dark:border-[#a16207] self-start max-w-[80%] my-md font-handwriting text-[20px] text-on-background dark:text-[#fef08a] relative"
+                    >
+                        <div
+                            class="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-3 bg-red-400/50 rounded-full blur-[1px]"
+                        ></div>
+                        <h4
+                            class="font-bold mb-xs flex items-center gap-xs text-[#854d0e] dark:text-[#fef08a]"
+                        >
+                            <span class="material-symbols-outlined text-[20px]"
+                                >edit_note</span
+                            >
+                            Author's Insight
+                        </h4>
+                        <p class="leading-relaxed">
+                            Before diving in, remember: SOLID is a guide, not a
+                            religion. In my experience, trying to rigidly apply
+                            all five to a simple MVP usually just leads to
+                            over-engineering. Focus heavily on S and O first.
+                        </p>
+                    </div>
+                    <!-- Article Content -->
+                    <article class="flex flex-col gap-lg">
+                        <section class="flex flex-col gap-md">
+                            <h2
+                                class="font-headline-lg text-headline-lg text-on-background"
+                                id="srp"
+                            >
+                                Single Responsibility Principle (SRP)
+                            </h2>
+                            <p>
+                                A class should have one, and only one, reason to
+                                change. This means that a class should only have
+                                one job or responsibility.
+                            </p>
+                            <div
+                                class="bg-[#0F172A] rounded-lg overflow-hidden border border-outline-variant shadow-sm"
+                            >
+                                <div
+                                    class="bg-surface-container-highest px-md py-sm border-b border-outline-variant flex items-center justify-between"
+                                >
+                                    <span
+                                        class="font-label-sm text-label-sm text-on-surface-variant"
+                                        >typescript</span
+                                    >
+                                    <button
+                                        class="text-on-surface-variant hover:text-primary transition-colors"
+                                    >
+                                        <span
+                                            class="material-symbols-outlined text-[16px]"
+                                            >content_copy</span
+                                        >
+                                    </button>
+                                </div>
+                                <pre
+                                    class="p-md font-code-block text-code-block text-[#e2e8f0] overflow-x-auto"
+                                ><code><span class="text-[#89ddff]">class</span> <span class="text-[#ffcb6b]">User</span> {
+  <span class="text-[#82aaff]">constructor</span>(<span class="text-[#89ddff]">public</span> name: <span class="text-[#c792ea]">string</span>) {}
+}
+
+<span class="text-[#676e95]">// ❌ Bad: Handles both user logic and database logic</span>
+<span class="text-[#89ddff]">class</span> <span class="text-[#ffcb6b]">UserService</span> {
+  <span class="text-[#82aaff]">saveUser</span>(user: User) {
+    <span class="text-[#676e95]">// Database saving logic...</span>
+  }
+}
+
+<span class="text-[#676e95]">// ✅ Good: Separated responsibilities</span>
+<span class="text-[#89ddff]">class</span> <span class="text-[#ffcb6b]">UserRepository</span> {
+  <span class="text-[#82aaff]">save</span>(user: User) {
+    <span class="text-[#676e95]">// Database saving logic...</span>
+  }
+}</code></pre>
+                            </div>
+                        </section>
+                        <section class="flex flex-col gap-md">
+                            <h2
+                                class="font-headline-lg text-headline-lg text-on-background"
+                                id="ocp"
+                            >
+                                Open-Closed Principle (OCP)
+                            </h2>
+                            <p>
+                                Software entities (classes, modules, functions,
+                                etc.) should be open for extension, but closed
+                                for modification.
+                            </p>
+                        </section>
+                        <!-- Practical Opinion Section -->
+                        <section
+                            class="flex flex-col gap-md mt-lg border-t border-dashed border-outline-variant pt-lg"
+                        >
+                            <h2
+                                class="font-headline-md text-headline-md text-on-background flex items-center gap-sm"
+                            >
+                                <span
+                                    class="material-symbols-outlined text-primary text-[28px]"
+                                    >lightbulb</span
+                                >
+                                Practical Opinion: Real-World Usage
+                            </h2>
+                            <div
+                                class="bg-[#e0f2fe] dark:bg-[#0c4a6e] p-md rounded-md shadow-sm rotate-1 border border-[#bae6fd] dark:border-[#0369a1] font-handwriting text-[22px] text-on-background dark:text-[#e0f2fe]"
+                            >
+                                <p class="leading-relaxed">
+                                    After years of refactoring monoliths, here's
+                                    the reality check:
+                                </p>
+                                <ul class="list-disc pl-lg mt-sm space-y-sm">
+                                    <li>
+                                        <strong
+                                            >S (Single Responsibility):</strong
+                                        >
+                                        This is the most important one. Big
+                                        classes are the root of all merge
+                                        conflicts.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >I (Interface Segregation):</strong
+                                        >
+                                        Often naturally solved if you are using
+                                        modern functional approaches instead of
+                                        deep inheritance trees anyway.
+                                    </li>
+                                    <li>
+                                        <strong
+                                            >D (Dependency Inversion):</strong
+                                        >
+                                        Essential for testing. If you can't mock
+                                        your database, your life will be
+                                        miserable.
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+                    </article>
+                    <!-- Bottom Navigation Pagination -->
+                    <div
+                        class="flex justify-between items-center pt-xl border-t border-outline-variant mt-xl"
+                    >
+                        <a class="flex flex-col gap-xs group" href="#">
+                            <span
+                                class="font-label-sm text-label-sm text-outline-variant group-hover:text-primary transition-colors"
+                                >Previous Note</span
+                            >
+                            <span
+                                class="font-label-md text-label-md text-primary font-medium flex items-center gap-xs"
+                            >
+                                <span
+                                    class="material-symbols-outlined text-[18px]"
+                                    >arrow_back</span
+                                >
+                                Clean Code
+                            </span>
+                        </a>
+                        <a
+                            class="flex flex-col gap-xs group items-end"
+                            href="#"
+                        >
+                            <span
+                                class="font-label-sm text-label-sm text-outline-variant group-hover:text-primary transition-colors"
+                                >Next Note</span
+                            >
+                            <span
+                                class="font-label-md text-label-md text-primary font-medium flex items-center gap-xs"
+                            >
+                                Design Patterns
+                                <span
+                                    class="material-symbols-outlined text-[18px]"
+                                    >arrow_forward</span
+                                >
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </main>
+            <!-- Right Sidebar (Table of Contents) -->
+            <aside
+                class="hidden xl:flex flex-col w-[240px] pl-lg py-xl sticky top-[64px] h-[calc(100vh-64px)] overflow-y-auto"
+            >
+                <h4
+                    class="font-label-md text-label-md font-bold text-on-surface mb-md"
+                >
+                    On this page
+                </h4>
+                <nav
+                    class="flex flex-col gap-sm border-l border-outline-variant pl-md"
+                >
+                    <a
+                        class="font-label-sm text-label-sm text-primary font-medium"
+                        href="#srp"
+                        >Single Responsibility Principle</a
+                    >
+                    <a
+                        class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors"
+                        href="#ocp"
+                        >Open-Closed Principle</a
+                    >
+                    <a
+                        class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors"
+                        href="#lsp"
+                        >Liskov Substitution Principle</a
+                    >
+                    <a
+                        class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors"
+                        href="#isp"
+                        >Interface Segregation Principle</a
+                    >
+                    <a
+                        class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors"
+                        href="#dip"
+                        >Dependency Inversion Principle</a
+                    >
+                </nav>
+            </aside>
+        </div>
+        <!-- Footer -->
+        <footer
+            class="bg-surface dark:bg-inverse-surface border-t border-outline-variant dark:border-outline full-width py-xl mt-xl"
+        >
+            <div
+                class="max-w-content_max_width mx-auto flex flex-col items-center gap-md"
+            >
+                <span class="font-headline-md text-headline-md text-primary"
+                    >DocsEngine</span
+                >
+                <nav class="flex gap-lg">
+                    <a
+                        class="font-body-md text-body-md font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary underline transition-all opacity-90 hover:opacity-100"
+                        href="#"
+                        >Privacy Policy</a
+                    >
+                    <a
+                        class="font-body-md text-body-md font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary underline transition-all opacity-90 hover:opacity-100"
+                        href="#"
+                        >Terms of Service</a
+                    >
+                    <a
+                        class="font-body-md text-body-md font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary underline transition-all opacity-90 hover:opacity-100"
+                        href="#"
+                        >Security</a
+                    >
+                    <a
+                        class="font-body-md text-body-md font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary underline transition-all opacity-90 hover:opacity-100"
+                        href="#"
+                        >Status</a
+                    >
+                </nav>
+                <p
+                    class="font-body-md text-body-md font-label-sm text-label-sm text-on-surface-variant dark:text-outline-variant"
+                >
+                    © 2024 DocsEngine Inc. Built with precision.
+                </p>
+            </div>
+        </footer>
+    </body>
+</html>

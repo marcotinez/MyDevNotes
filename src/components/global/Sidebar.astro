@@ -1,0 +1,129 @@
+---
+type SidebarSection = {
+  title: string;
+  topics: string[];
+  icon: string;
+  href?: string;
+  topicHrefs?: string[];
+};
+
+const sections: SidebarSection[] = [
+  {
+    title: "Inicio",
+    icon: "home",
+    href: "/inicio/bienvenida",
+    topics: ["Bienvenida", "Cómo usar la wiki", "Filosofía", "Roadmap", "Convenciones", "Stack de la wiki"],
+    topicHrefs: [
+      "/inicio/bienvenida",
+      "/inicio/como-usar-la-wiki",
+      "/inicio/filosofia",
+      "/inicio/roadmap",
+      "/inicio/convenciones",
+      "/inicio/stack-de-la-wiki",
+    ],
+  },
+  { title: "Fundamentos", icon: "rocket_launch", topics: ["Clean Code", "SOLID", "Code Smells", "Refactoring"] },
+  { title: "Arquitectura", icon: "account_tree", topics: ["Conceptos Base", "Capas", "Clean Architecture", "Hexagonal", "Modular", "Microservicios", "Event-Driven"] },
+  { title: "DDD", icon: "psychology", topics: ["Introducción", "Strategic Design", "Tactical Design", "Buenas Prácticas"] },
+  { title: "Estructura de Proyectos", icon: "folder_code", topics: ["Backend", "Frontend", "Monorepos", "Convenciones"] },
+  { title: "Patrones de Diseño", icon: "design_services", topics: ["Creacionales", "Estructurales", "Comportamiento", "Arquitecturales"] },
+  { title: "Backend Engineering", icon: "dns", topics: ["REST", "GraphQL", "Validación", "AuthN/AuthZ", "Errores", "Jobs", "Observabilidad"] },
+  { title: "Frontend Engineering", icon: "web", topics: ["Arquitectura", "React", "Estado", "Formularios", "UI/UX", "Performance"] },
+  { title: "Bases de Datos", icon: "database", topics: ["Modelado", "SQL", "NoSQL", "ORM", "Migraciones", "Performance"] },
+  { title: "Testing", icon: "science", topics: ["Fundamentos", "Unit", "Integration", "E2E", "TDD", "Calidad"] },
+  { title: "Seguridad", icon: "shield", topics: ["Fundamentos", "Vulnerabilidades", "Backend", "Frontend", "DevOps"] },
+  { title: "DevOps & Infra", icon: "deployed_code", topics: ["Docker", "Kubernetes", "CI/CD", "Cloud", "IaC", "Deployments"] },
+  { title: "Calidad de Código", icon: "rule", topics: ["Linters", "Static Analysis", "Code Review", "Métricas"] },
+  { title: "Git & Workflow", icon: "alt_route", topics: ["Basics", "Workflows", "Commits", "PRs", "Versionado"] },
+  { title: "Performance & Escalabilidad", icon: "speed", topics: ["Backend", "Frontend", "Escalabilidad", "Caching"] },
+  { title: "Observabilidad", icon: "monitoring", topics: ["Logging", "Metrics", "Tracing", "Monitoring"] },
+  { title: "Documentación Técnica", icon: "description", topics: ["README", "ADRs", "Diagramas", "API Docs", "Knowledge Mgmt"] },
+  { title: "Principios Profesionales", icon: "school", topics: ["Ingeniería", "Decisiones", "Comunicación", "Trabajo en Equipo"] },
+  { title: "Tooling & Ecosistema", icon: "build", topics: ["Editores", "CLI", "Productividad", "AI Engineering"] },
+  { title: "Roadmaps", icon: "map", topics: ["Backend", "Frontend", "DevOps", "Architecture", "DDD", "Security"] },
+  { title: "Recursos", icon: "menu_book", topics: ["Libros", "Blogs", "Cursos", "YouTube", "Papers", "OSS", "Cheat Sheets"] },
+];
+---
+
+<aside>
+  <div class="hidden xl:flex fixed left-0 top-16 z-40 flex-col p-md gap-xs bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline w-sidebar_width h-[calc(100vh-64px)] overflow-y-auto">
+    <nav class="flex flex-col gap-sm mb-md">
+      {sections.map((section, idx) => (
+        <details class="group" open={idx === 0}>
+          <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${idx === 0 ? "bg-secondary-container dark:bg-secondary-fixed-dim text-on-secondary-container dark:text-on-secondary-fixed rounded-full font-medium" : "text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high rounded-lg"}`}>
+            <a href={section.href ?? "#"} class="flex items-center gap-sm min-w-0 grow">
+              <span class="material-symbols-outlined text-[20px]">{section.icon}</span>
+              <span class="truncate">{section.title}</span>
+            </a>
+            <span class="material-symbols-outlined text-[18px] transition-transform group-open:rotate-180">expand_more</span>
+          </summary>
+          <ul class="mt-xs ml-xl pl-sm space-y-[2px] border-l border-outline-variant/60">
+            {section.topics.map((topic, topicIdx) => (
+              <li>
+                <a
+                  href={section.topicHrefs?.[topicIdx] ?? "#"}
+                  class="block py-[2px] text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-label-sm text-label-sm leading-5"
+                >
+                  {topic}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </nav>
+  </div>
+
+  <details class="xl:hidden fixed left-0 top-0 z-[70] mobile-sidebar" id="mobile-sidebar">
+    <summary class="hidden"></summary>
+    <button
+      type="button"
+      class="fixed inset-0 z-[70] bg-black/30 border-0 p-0 m-0 cursor-default"
+      aria-label="Cerrar navegación"
+      data-sidebar-backdrop
+    ></button>
+    <div class="fixed left-0 top-0 z-[80] w-[300px] h-screen bg-surface-container-lowest border-r border-outline-variant p-md overflow-y-auto shadow-xl">
+      {sections.map((section, idx) => (
+        <details class="group mb-sm" open={idx === 0}>
+          <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${idx === 0 ? "bg-secondary-container dark:bg-secondary-fixed-dim text-on-secondary-container dark:text-on-secondary-fixed rounded-full font-medium" : "text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high rounded-lg"}`}>
+            <a href={section.href ?? "#"} class="flex items-center gap-sm min-w-0 grow">
+              <span class="material-symbols-outlined text-[20px]">{section.icon}</span>
+              <span class="truncate">{section.title}</span>
+            </a>
+            <span class="material-symbols-outlined text-[18px] transition-transform group-open:rotate-180">expand_more</span>
+          </summary>
+          <ul class="mt-xs ml-xl pl-sm space-y-[2px] border-l border-outline-variant/60">
+            {section.topics.map((topic, topicIdx) => (
+              <li>
+                <a
+                  href={section.topicHrefs?.[topicIdx] ?? "#"}
+                  class="block py-[2px] text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-label-sm text-label-sm leading-5"
+                >
+                  {topic}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </div>
+  </details>
+</aside>
+
+<script is:inline>
+  document.querySelectorAll(".mobile-sidebar").forEach((detailsEl) => {
+    const backdrop = detailsEl.querySelector("[data-sidebar-backdrop]");
+    if (!backdrop) return;
+    backdrop.addEventListener("click", () => {
+      detailsEl.removeAttribute("open");
+    });
+  });
+
+  document.querySelectorAll("[data-open-sidebar]").forEach((openBtn) => {
+    openBtn.addEventListener("click", () => {
+      const sidebar = document.getElementById("mobile-sidebar");
+      if (!sidebar) return;
+      sidebar.setAttribute("open", "");
+    });
+  });
+</script>
