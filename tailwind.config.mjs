@@ -1,0 +1,151 @@
+import forms from "@tailwindcss/forms";
+import containerQueries from "@tailwindcss/container-queries";
+import typography from "@tailwindcss/typography";
+
+export default {
+  content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface-dim": "#d9d9e5",
+        "outline-variant": "#c3c6d7",
+        "surface-bright": "#faf8ff",
+        "tertiary-container": "#bc4800",
+        "inverse-surface": "#2e3039",
+        "on-background": "#191b23",
+        surface: "#faf8ff",
+        "primary-fixed": "#dbe1ff",
+        "surface-tint": "#0053db",
+        "on-primary-fixed": "#00174b",
+        "on-surface-variant": "#434655",
+        "primary-fixed-dim": "#b4c5ff",
+        "surface-container-lowest": "#ffffff",
+        "on-error": "#ffffff",
+        "secondary-fixed": "#d5e3fc",
+        "on-tertiary": "#ffffff",
+        "surface-container-low": "#f3f3fe",
+        "secondary-container": "#d5e3fc",
+        "tertiary-fixed": "#ffdbcd",
+        primary: "#004ac6",
+        "on-primary": "#ffffff",
+        "on-primary-container": "#eeefff",
+        "secondary-fixed-dim": "#b9c7df",
+        "error-container": "#ffdad6",
+        outline: "#737686",
+        error: "#ba1a1a",
+        "on-error-container": "#93000a",
+        "on-tertiary-container": "#ffede6",
+        "on-secondary-fixed-variant": "#3a485b",
+        "inverse-primary": "#b4c5ff",
+        "on-tertiary-fixed-variant": "#7d2d00",
+        background: "#faf8ff",
+        "tertiary-fixed-dim": "#ffb596",
+        "on-primary-fixed-variant": "#003ea8",
+        "surface-container-high": "#e7e7f3",
+        "on-secondary": "#ffffff",
+        "on-secondary-fixed": "#0d1c2e",
+        "on-surface": "#191b23",
+        tertiary: "#943700",
+        "surface-container-highest": "#e1e2ed",
+        "inverse-on-surface": "#f0f0fb",
+        "on-tertiary-fixed": "#360f00",
+        secondary: "#515f74",
+        "primary-container": "#2563eb",
+        "surface-container": "#ededf9",
+        "surface-variant": "#e1e2ed",
+        "on-secondary-container": "#57657a",
+      },
+      borderRadius: {
+        DEFAULT: "0.125rem",
+        lg: "0.25rem",
+        xl: "0.5rem",
+        full: "0.75rem",
+      },
+      spacing: {
+        content_max_width: "768px",
+        xl: "40px",
+        lg: "24px",
+        xs: "4px",
+        md: "16px",
+        sidebar_width: "280px",
+        sm: "8px",
+        base: "4px",
+        container_max_width: "1280px",
+      },
+      fontFamily: {
+        "headline-md": ["Geist"],
+        "headline-xl": ["Geist"],
+        "headline-lg": ["Geist"],
+        "label-md": ["Geist"],
+        "body-md": ["Source Serif 4"],
+        "body-lg": ["Source Serif 4"],
+        "code-block": ["JetBrains Mono"],
+        "label-sm": ["Geist"],
+        handwriting: ["Caveat", "cursive"],
+      },
+      fontSize: {
+        "headline-md": [
+          "24px",
+          {
+            lineHeight: "32px",
+            fontWeight: "600",
+          },
+        ],
+        "headline-xl": [
+          "36px",
+          {
+            lineHeight: "44px",
+            letterSpacing: "-0.02em",
+            fontWeight: "700",
+          },
+        ],
+        "headline-lg": [
+          "30px",
+          {
+            lineHeight: "38px",
+            letterSpacing: "-0.01em",
+            fontWeight: "600",
+          },
+        ],
+        "label-md": [
+          "14px",
+          {
+            lineHeight: "20px",
+            fontWeight: "500",
+          },
+        ],
+        "body-md": [
+          "16px",
+          {
+            lineHeight: "26px",
+            fontWeight: "400",
+          },
+        ],
+        "body-lg": [
+          "18px",
+          {
+            lineHeight: "30px",
+            fontWeight: "400",
+          },
+        ],
+        "code-block": [
+          "14px",
+          {
+            lineHeight: "24px",
+            fontWeight: "400",
+          },
+        ],
+        "label-sm": [
+          "12px",
+          {
+            lineHeight: "16px",
+            letterSpacing: "0.02em",
+            fontWeight: "500",
+          },
+        ],
+      },
+    },
+  },
+  plugins: [forms, containerQueries, typography],
+};
