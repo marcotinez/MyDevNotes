@@ -9,8 +9,41 @@ import DocsPageLayout from "../../layouts/DocsPageLayout.astro";
   title="Stack de la wiki | MyDevNotes"
   section="Inicio"
   pageTitle="Stack de la wiki"
-  pageDescription="Tecnologías usadas para documentar y escalar contenido."
+  pageDescription="Las piezas que hacen posible esta wiki y el rol que cumple cada una."
   prevPage={{ href: "/inicio/vision-general", label: "Visión general" }}
 >
-Astro para estructura y rutas, Markdown/MDX para contenido, React/Astro para componentes reutilizables y Tailwind para consistencia visual.
+<div class="not-prose">
+  <a
+    href="https://github.com/marcotinez/MyDevNotes"
+    target="_blank"
+    rel="noreferrer noopener"
+    class="inline-flex w-full items-center justify-center gap-xs rounded-2xl border border-primary bg-primary px-md py-sm font-label-md text-label-md text-white hover:bg-primary-container hover:border-primary-container transition-colors no-underline"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true" class="h-6 w-6 shrink-0 fill-current text-white">
+      <path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.72.5.1.68-.22.68-.5v-1.8c-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.1-1.49-1.1-1.49-.9-.63.07-.62.07-.62.99.07 1.52 1.05 1.52 1.05.88 1.56 2.3 1.11 2.86.85.09-.66.35-1.11.63-1.36-2.22-.26-4.56-1.14-4.56-5.08 0-1.12.39-2.04 1.03-2.76-.1-.26-.45-1.31.1-2.73 0 0 .84-.28 2.75 1.05.8-.23 1.66-.34 2.5-.34.85 0 1.7.12 2.5.34 1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.47.1 2.73.64.72 1.03 1.64 1.03 2.76 0 3.95-2.34 4.81-4.57 5.06.36.32.68.95.68 1.92v2.85c0 .28.18.6.69.5C19.13 20.62 22 16.78 22 12.25 22 6.58 17.52 2 12 2Z" />
+    </svg>
+    <span class="text-white">Ver repositorio en GitHub</span>
+  </a>
+</div>
+
+Esta wiki está pensada como un sistema simple de mantener: contenido en archivos, navegación clara y UI suficiente para que leer no se sienta pesado.
+
+## Capas del stack
+
+| Capa | Rol en la wiki |
+| --- | --- |
+| **Astro** | Da estructura al sitio, define rutas y mantiene el renderizado ligero. |
+| **MDX / Markdown** | Permite escribir contenido con formato rico sin salir del flujo editorial. |
+| **React** | Se usa en los bloques interactivos y componentes reutilizables de la home. |
+| **Tailwind CSS** | Mantiene consistencia visual sin duplicar estilos en cada vista. |
+| **Layout system** | Une la navegación, el contenedor de lectura y el pie de página en una experiencia coherente. |
+| **Sidebar dinámica** | Organiza la navegación por dominios y crece de forma automática a medida que agrego nuevos documentos. |
+| **Tipografía y tokens** | Le dan identidad visual y hacen que el texto técnico se lea con menos fricción. |
+
+## Por qué este stack
+
+- Prioriza velocidad de escritura para que crear contenido sea más importante que pelear con la herramienta.
+- Mantiene el sitio simple de desplegar y fácil de extender.
+- Se adapta bien a una wiki que crecerá por secciones, no por páginas aisladas.
+- Separa bien la parte editorial de la parte visual, que es justo lo que este tipo de proyecto necesita.
 </DocsPageLayout>

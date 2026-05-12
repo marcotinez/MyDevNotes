@@ -9,9 +9,36 @@ import DocsPageLayout from "../../layouts/DocsPageLayout.astro";
   title="Visión general | MyDevNotes"
   section="Inicio"
   pageTitle="Visión general"
-  pageDescription="Mapa rápido de la wiki y orden sugerido para recorrerla."
+  pageDescription="Mapa rápido de la wiki y resumen de lo que cubre cada sección."
   prevPage={{ href: "/inicio/bienvenida", label: "Bienvenida" }}
   nextPage={{ href: "/inicio/stack-de-la-wiki", label: "Stack de la wiki" }}
 >
-Secuencia sugerida: Fundamentos → Arquitectura → DDD → Testing → Seguridad → Observabilidad → Escalabilidad.
+Esta wiki está organizada por dominios, no por temas sueltos. La idea es poder entrar por la necesidad concreta que tengas y encontrar un camino claro hacia el resto de conceptos relacionados.
+
+## Qué encontrarás en la sidebar
+
+| Sección | Qué cubre |
+| --- | --- |
+| **Fundamentos** | Bases para pensar con más orden antes de tomar decisiones técnicas. |
+| **Arquitectura** | Formas de estructurar sistemas para que escalen sin perder legibilidad. |
+| **DDD** | Herramientas para modelar software desde el dominio y el lenguaje del negocio. |
+| **Estructura de Proyectos** | Convenciones y formas de organizar código, carpetas y límites. |
+| **Patrones de Diseño** | Soluciones recurrentes que ayudan cuando un problema ya tiene forma conocida. |
+| **Backend Engineering** | Diseño de APIs, validación, autenticación, errores, jobs y observabilidad. |
+| **Frontend Engineering** | Arquitectura UI, estado, formularios, performance y decisiones de interfaz. |
+| **Bases de Datos** | Modelado, SQL, NoSQL, migraciones y criterios de rendimiento. |
+| **Testing** | Fundamentos, unit, integration, E2E y hábitos para reducir riesgo. |
+| **Seguridad** | Amenazas, vulnerabilidades y prácticas para proteger frontend, backend y operación. |
+| **DevOps & Infra** | Despliegues, contenedores, cloud, CI/CD e infraestructura como código. |
+| **Calidad de Código** | Linters, análisis estático, review y métricas para mantener salud técnica. |
+| **Git & Workflow** | Flujos de trabajo, commits, PRs y versionado para colaborar sin fricción. |
+| **Performance & Escalabilidad** | Cómo medir, optimizar y preparar sistemas para crecer. |
+| **Observabilidad** | Logging, métricas, tracing y monitoreo para entender lo que pasa en producción. |
+| **Documentación Técnica** | README, ADRs, diagramas y documentación útil para equipos reales. |
+| **Principios Profesionales** | Decisiones, comunicación, colaboración y forma de trabajar. |
+| **Tooling & Ecosystem** | Editores, CLI, productividad y herramientas que aceleran el trabajo diario. |
+| **Roadmaps** | Rutas sugeridas para estudiar backend, frontend, DevOps, seguridad y arquitectura. |
+| **Recursos** | Libros, blogs, cursos, papers y otros materiales que vale la pena tener a mano. |
+
+Si no sabes por dónde empezar, entra por Fundamentos y Arquitectura. Si ya tienes un problema en mente, ve directo al dominio que mejor lo describa.
 </DocsPageLayout>
