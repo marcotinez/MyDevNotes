@@ -8,12 +8,12 @@ type CategoryCard = {
 const categoryCards: CategoryCard[] = [
   {
     title: "Fundamentos",
-    description: "El toolkit esencial para mantener claridad técnica y velocidad de entrega.",
+    description: "Conceptos base que ayudan a construir criterio antes de escribir código.",
     icon: "menu_book",
   },
   {
     title: "Arquitectura",
-    description: "Cómo diseñar sistemas mantenibles que no colapsen en producción.",
+    description: "Formas de organizar sistemas para que crezcan sin perder claridad.",
     icon: "architecture",
   },
   {
@@ -23,12 +23,12 @@ const categoryCards: CategoryCard[] = [
   },
   {
     title: "Calidad y Operación",
-    description: "Estrategias para mantener estabilidad sin vivir apagando incendios.",
+    description: "Prácticas para mantener estabilidad y detectar problemas antes de que escalen.",
     icon: "bug_report",
   },
   {
     title: "Proceso y Agilidad",
-    description: "Formas de colaboración efectivas, sin burocracia ni reuniones innecesarias.",
+    description: "Formas de colaboración que reducen ruido y ayudan a decidir mejor.",
     icon: "schema",
     wide: true,
   },
