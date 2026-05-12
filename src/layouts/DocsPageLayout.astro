@@ -38,7 +38,9 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
             )}
           </header>
 
-          <article class="flex-1 flex flex-col gap-lg">
+          <article
+            class="prose prose-slate max-w-none flex-1 prose-headings:font-headline-lg prose-headings:text-on-background prose-p:font-body-md prose-p:text-on-surface prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary prose-strong:text-on-surface prose-ul:text-on-surface-variant prose-ol:text-on-surface-variant prose-li:marker:text-outline prose-code:font-code-block prose-code:text-primary prose-pre:rounded-xl prose-pre:border prose-pre:border-outline-variant prose-pre:bg-inverse-surface prose-pre:text-inverse-on-surface prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-surface-container-low prose-blockquote:text-on-surface-variant prose-blockquote:rounded-r-lg dark:prose-invert"
+          >
             <slot />
           </article>
 
@@ -76,3 +78,49 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
     <Footer />
   </div>
 </HomeLayout>
+
+<script is:inline>
+  const enhanceCodeBlocks = () => {
+    document.querySelectorAll("article pre").forEach((preEl) => {
+      if (preEl.dataset.copyReady === "true") return;
+      const codeEl = preEl.querySelector("code");
+      if (!codeEl) return;
+
+      preEl.dataset.copyReady = "true";
+      preEl.classList.add("relative");
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = "Copiar";
+      button.className =
+        "absolute top-2 right-2 rounded-md border border-outline-variant bg-surface/90 px-2 py-1 text-[11px] leading-none font-label-sm text-on-surface-variant hover:text-primary hover:border-primary transition-colors";
+
+      button.addEventListener("click", async () => {
+        const code = codeEl.textContent ?? "";
+        if (!code) return;
+        try {
+          await navigator.clipboard.writeText(code);
+          button.textContent = "Copiado";
+          button.classList.add("text-primary", "border-primary");
+          window.setTimeout(() => {
+            button.textContent = "Copiar";
+            button.classList.remove("text-primary", "border-primary");
+          }, 1400);
+        } catch {
+          button.textContent = "Error";
+          window.setTimeout(() => {
+            button.textContent = "Copiar";
+          }, 1400);
+        }
+      });
+
+      preEl.appendChild(button);
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", enhanceCodeBlocks);
+  } else {
+    enhanceCodeBlocks();
+  }
+</script>
