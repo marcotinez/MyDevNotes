@@ -14,7 +14,6 @@ type SidebarSection = {
   title: string;
   topics: string[];
   icon: string;
-  href?: string;
   topicHrefs?: string[];
 };
 
@@ -51,7 +50,6 @@ const sections: SidebarSection[] = sidebarDomains
     return {
       title: domain.title,
       icon: domain.icon,
-      href: domain.href ?? topics[0]?.href ?? "#",
       topics: topics.map((topic) => topic.label),
       topicHrefs: topics.map((topic) => topic.href),
     };
@@ -65,10 +63,10 @@ const sections: SidebarSection[] = sidebarDomains
       {sections.map((section, idx) => (
         <details class="group" open={idx === 0}>
           <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${idx === 0 ? "bg-secondary-container dark:bg-secondary-fixed-dim text-on-secondary-container dark:text-on-secondary-fixed rounded-full font-medium" : "text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high rounded-lg"}`}>
-            <a href={section.href ?? "#"} class="flex items-center gap-sm min-w-0 grow">
+            <span class="flex items-center gap-sm min-w-0 grow">
               <span class="material-symbols-outlined text-[20px]">{section.icon}</span>
               <span class="truncate">{section.title}</span>
-            </a>
+            </span>
             <span class="material-symbols-outlined text-[18px] transition-transform group-open:rotate-180">expand_more</span>
           </summary>
           <ul class="mt-xs ml-xl pl-sm space-y-[2px] border-l border-outline-variant/60">
@@ -100,10 +98,10 @@ const sections: SidebarSection[] = sidebarDomains
       {sections.map((section, idx) => (
         <details class="group mb-sm" open={idx === 0}>
           <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${idx === 0 ? "bg-secondary-container dark:bg-secondary-fixed-dim text-on-secondary-container dark:text-on-secondary-fixed rounded-full font-medium" : "text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high rounded-lg"}`}>
-            <a href={section.href ?? "#"} class="flex items-center gap-sm min-w-0 grow">
+            <span class="flex items-center gap-sm min-w-0 grow">
               <span class="material-symbols-outlined text-[20px]">{section.icon}</span>
               <span class="truncate">{section.title}</span>
-            </a>
+            </span>
             <span class="material-symbols-outlined text-[18px] transition-transform group-open:rotate-180">expand_more</span>
           </summary>
           <ul class="mt-xs ml-xl pl-sm space-y-[2px] border-l border-outline-variant/60">
