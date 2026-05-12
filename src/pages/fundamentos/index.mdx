@@ -1,0 +1,195 @@
+---
+navOrder: 1
+navLabel: "Clean Code"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Clean Code | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Clean Code"
+  pageDescription="Aprende los principios fundamentales del Clean Code: nombres claros, funciones con una sola responsabilidad, evitar duplicación, comentarios útiles y principios como DRY, KISS y YAGNI para escribir código legible y mantenible."
+>
+El concepto de *Clean Code* (Código Limpio) se centra en la premisa de que el código no solo debe ser comprensible para la máquina, sino fundamentalmente para los humanos. **La lectura del código es una parte mayoritaria del trabajo de un desarrollador**, por lo que hacerlo legible y mantenible es una inversión a largo plazo y una cuestión de supervivencia profesional.
+
+A continuación, se detallan las prácticas fundamentales para escribir un código limpio:
+
+### Nombres claros para variables, funciones y clases
+Nombrar correctamente los elementos de nuestro software es esencial para escribir un código comprensible, y **los nombres deben revelar siempre nuestra intención**. Si un nombre requiere un comentario para ser entendido, entonces no revela su cometido.
+
+* **Variables:** Deben tener nombres que se puedan pronunciar y buscar. Cuando se trate de colecciones (como arrays), es fundamental usar nombres en plural. Para variables booleanas, es útil utilizar prefijos como `is`, `has` o `can` para denotar su naturaleza.
+* **Funciones:** Representan acciones, por lo que **deben iniciar con un verbo seguido de un sustantivo** descriptivo. Por ejemplo, `postPayment` o `deletePage`.
+* **Clases:** Deben tener nombres formados por sustantivos o frases de sustantivos (como `Customer`, `WikiPage` o `Account`), evitando palabras genéricas como `Manager`, `Processor`, `Data` o `Info`. El nombre de una clase nunca debe ser un verbo y debe seguir el principio de responsabilidad única.
+
+Ejemplos:
+
+```ts
+// Malo: obliga a interpretar demasiado.
+const d = new Date();
+const u = users.filter((x) => x.active);
+
+// Mejor: el nombre explica su intención.
+const currentDate = new Date();
+const activeUsers = users.filter((user) => user.isActive);
+```
+
+```ts
+// Malo: la función no dice qué hace realmente.
+function process(data: string) {
+  return data.trim();
+}
+
+// Mejor: el verbo describe la acción.
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+```
+
+### Funciones pequeñas y con una sola responsabilidad
+La primera regla de las funciones es que **deben ser de tamaño reducido**, y la segunda regla es que deben ser todavía más reducidas. Una función ideal debería tener apenas unas pocas líneas de longitud.
+Para lograr esto, se debe seguir un principio rector: **Las funciones sólo deben hacer una cosa, deben hacerlo bien y debe ser lo único que hagan**.
+
+* Los bloques dentro de instrucciones `if`, `else` o `while` deberían tener una sola línea de longitud, la cual idealmente será la invocación a otra función descriptiva.
+* Una función debe mantenerse en un único nivel de abstracción. Si puedes extraer otra función a partir de ella con un nombre que no sea solo una reformulación de la implementación, entonces tu función actual está haciendo más de una cosa.
+
+Ejemplo:
+
+```ts
+// Malo: esta función hace demasiadas cosas a la vez.
+// Primero valida, luego transforma, después escribe en base de datos y además dispara un email.
+// Cuando una sola función concentra tanto, cambiar una sola regla obliga a revisar demasiada lógica.
+function registerUser(input: { email: string; name: string }) {
+  if (!input.email.includes("@")) {
+    throw new Error("Invalid email");
+  }
+
+  const user = {
+    email: input.email.toLowerCase(),
+    name: input.name.trim(),
+  };
+
+  database.users.insert(user);
+  sendWelcomeEmail(user.email);
+}
+
+// Mejor: separamos las responsabilidades para que el flujo sea más fácil de entender y probar.
+// normalizeUser solo transforma datos.
+function normalizeUser(input: { email: string; name: string }) {
+  return {
+    email: input.email.toLowerCase(),
+    name: input.name.trim(),
+  };
+}
+
+// validateEmail solo valida una regla concreta.
+function validateEmail(email: string) {
+  if (!email.includes("@")) {
+    throw new Error("Invalid email");
+  }
+}
+
+// registerUser ahora orquesta pasos simples en vez de esconder todo dentro de un bloque grande.
+function registerUser(input: { email: string; name: string }) {
+  validateEmail(input.email);
+  const user = normalizeUser(input);
+  database.users.insert(user);
+  sendWelcomeEmail(user.email);
+}
+```
+
+### Evitar duplicación de código
+La duplicación de código es considerada como **la raíz de todos los problemas del software**. Cuando un mismo fragmento de código o la misma lógica se repite en múltiples lugares, se aumenta considerablemente el riesgo de cometer errores y el coste de mantenimiento, ya que cualquier cambio futuro obligará a modificar el código en todos esos puntos.
+La estrategia debe ser abstraer y unificar. Ya sea mediante la creación de funciones más pequeñas, el uso de clases base u otros principios del diseño orientado a objetos (como el polimorfismo o el patrón de Método de plantilla), **el objetivo siempre es eliminar los elementos duplicados**.
+
+Ejemplo:
+
+```ts
+// Malo: repetimos exactamente la misma lógica en dos lugares.
+// Si mañana cambian el formato o el redondeo, habría que tocar ambas funciones.
+function formatPriceForCard(price: number) {
+  return `$${price.toFixed(2)}`;
+}
+
+function formatPriceForCheckout(price: number) {
+  return `$${price.toFixed(2)}`;
+}
+
+// Mejor: centralizamos la regla en una función base.
+// Si cambia el formato del precio, solo hay que tocar un lugar.
+function formatPrice(price: number) {
+  return `$${price.toFixed(2)}`;
+}
+
+// Estas funciones ya no contienen lógica duplicada; solo expresan el caso de uso.
+function formatPriceForCard(price: number) {
+  return formatPrice(price);
+}
+
+function formatPriceForCheckout(price: number) {
+  return formatPrice(price);
+}
+```
+
+### Comentarios útiles vs comentarios innecesarios
+Los comentarios no son pura bondad; de hecho, en el mejor de los casos son un mal necesario. **El uso de comentarios suele ser un indicador de nuestra incapacidad para expresarnos de forma clara directamente en el código**. La regla de oro es: **no comente el código incorrecto, reescríbalo**.
+
+* **Comentarios inútiles:** Evita la redundancia (comentarios que no dicen más que el propio código), el exceso de información o rastro histórico (que debe delegarse a Git u otro control de versiones), y los obligatorios pero vacíos (como un Javadoc genérico que solo ensucia). **El código comentado (desactivado) debe borrarse inmediatamente**, ya que con el tiempo se estanca, confunde y nadie se atreve a eliminarlo por miedo.
+* **Comentarios útiles:** Existen excepciones donde los comentarios aportan valor, como los **comentarios legales o de derechos de autor**, los que **explican la intención detrás de una decisión técnica** (el porqué y no el qué), advertencias sobre las consecuencias de ejecutar ciertas funciones, o marcadores `//TODO` temporales para tareas pendientes.
+
+Ejemplo:
+
+```ts
+// Malo: el comentario no aporta nada.
+// La línea de abajo ya dice exactamente lo mismo.
+attempts += 1;
+
+// Mejor: aquí el comentario explica el motivo de una decisión,
+// que no se puede inferir solo mirando la línea.
+// Permitimos 3 intentos porque el proveedor bloquea el acceso temporalmente después.
+if (attempts >= 3) {
+  throw new Error("Too many attempts");
+}
+```
+
+### Código legible antes que “inteligente”
+El código limpio debe ser simple y directo, y **leerse como un texto bien escrito**. Los programadores a veces caen en la tentación de presumir de sus habilidades mentales escribiendo un código "inteligente" o compacto pero incomprensible.
+Se deben **evitar los juegos de palabras** y el humor que solo el autor entiende. Asimismo, se debe evitar forzar a los futuros lectores a realizar "asignaciones mentales" para deducir qué significa una variable de una sola letra en un contexto amplio. **Una diferencia entre un programador inteligente y un programador profesional es que este último sabe que la claridad es lo que importa**.
+
+Ejemplo:
+
+```ts
+// Malo: demasiado compacto y poco expresivo.
+// Hay que leerlo dos o tres veces para entender qué contiene, qué se filtra y cómo termina el resultado.
+const r = items.map((i) => i.v).filter(Boolean).join(",");
+
+// Mejor: cada paso está nombrado con intención.
+// Primero extraemos el valor, luego filtramos los vacíos y por último construimos el resumen.
+const visibleValues = items
+  .map((item) => item.value)
+  .filter(Boolean);
+
+const summary = visibleValues.join(",");
+```
+
+### Principios como DRY, KISS, YAGNI
+Para diseñar un software fácil de leer y reutilizable, la industria ha consolidado algunas máximas importantes:
+
+* **KISS (Keep it simple, stupid):** Propone eliminar la complejidad innecesaria. El código debe ser fácil de entender a simple vista. ¿Por qué hacer un código complicado e inentendible si las herramientas y lenguajes actuales ya nos permiten simplificarlo? Seguir KISS facilita el mantenimiento y la creación de tests.
+* **DRY (Don't repeat yourself):** Significa "no te repitas a ti mismo". Consiste en evitar reescribir la misma lógica millones de veces. Si un código hace lo mismo en muchos lugares, crea un alto coste extra a la hora de cambiarlo. En su lugar, crea una función que lo reemplace y se reutilice.
+* **YAGNI (You aren't gonna need it):** Significa "no vas a necesitarlo". Se enfoca en remover y no agregar funcionalidades que no se necesiten en el momento presente. Forzar la inclusión de código "por si acaso" en el futuro genera un software lleno de código obsoleto o sin usar, yendo en contra de la simplicidad del proyecto.
+
+Ejemplo:
+
+```ts
+// YAGNI: no crear una capa extra si solo necesitas una función directa.
+// La tentación sería crear un service, un formatter o una abstracción adicional,
+// pero hoy eso solo agrega piezas que todavía no aportan valor.
+function getUserDisplayName(user: { firstName: string; lastName: string }) {
+  return `${user.firstName} ${user.lastName}`;
+}
+```
+
+### Regla práctica
+Si un cambio pequeño te obliga a tocar muchas partes, hay demasiada complejidad o demasiada duplicación. Si leer una función requiere adivinar, el nombre o la estructura están fallando.
+</DocsPageLayout>
