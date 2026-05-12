@@ -6,10 +6,10 @@ const links = [
 ];
 ---
 
-<footer class="bg-surface dark:bg-inverse-surface border-t border-outline-variant dark:border-outline py-xl mt-xl">
-  <div class="max-w-container_max_width mx-auto px-lg flex flex-col items-center gap-md">
-    <div class="font-headline-md text-headline-md text-primary font-bold mb-sm">MyDevNotes</div>
-    <div class="flex flex-wrap justify-center gap-md mb-sm">
+<footer class="bg-surface dark:bg-inverse-surface border-t border-outline-variant/40 dark:border-outline/40 py-md mt-md xl:pl-sidebar_width">
+  <div class="max-w-container_max_width mx-auto px-lg flex flex-col items-center gap-sm">
+    <div class="font-headline-md text-headline-md text-primary font-bold">MyDevNotes</div>
+    <div class="flex flex-wrap justify-center gap-sm">
       {links.map((link) => (
         <a
           href={link.href}
@@ -21,7 +21,7 @@ const links = [
         </a>
       ))}
     </div>
-    <div class="text-on-surface-variant dark:text-outline-variant font-label-sm text-label-sm">
+    <div class="text-on-surface-variant dark:text-outline-variant font-label-sm text-label-sm leading-none">
       © 2026 MyDevNotes. Construido con precisión.
     </div>
   </div>

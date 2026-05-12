@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  article pre {
+    background-color: #e7eefc !important;
+    border-color: #c8d4ea !important;
+  }
+
+  article pre code {
+    background-color: transparent !important;
+  }
+}
