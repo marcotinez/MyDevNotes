@@ -1,0 +1,44 @@
+---
+navOrder: 1
+navLabel: "Titulo de navegacion"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Titulo de la pagina | MyDevNotes"
+  section="Nombre del dominio"
+  pageTitle="Titulo de la pagina"
+  pageDescription="Descripcion corta de lo que cubre esta pagina."
+  prevPage={{ href: "/ruta/anterior", label: "Pagina anterior" }}
+  nextPage={{ href: "/ruta/siguiente", label: "Pagina siguiente" }}
+>
+Escribe aqui la introduccion de la pagina.
+
+## Que es
+
+Define el concepto en 1-2 parrafos.
+
+## Cuando usarlo
+
+- Caso 1
+- Caso 2
+- Caso 3
+
+## Como aplicarlo
+
+1. Paso uno
+2. Paso dos
+3. Paso tres
+
+## Errores comunes
+
+- Error frecuente 1
+- Error frecuente 2
+
+## Checklist rapido
+
+- [ ] Punto clave 1
+- [ ] Punto clave 2
+- [ ] Punto clave 3
+</DocsPageLayout>

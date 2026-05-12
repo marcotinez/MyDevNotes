@@ -1,28 +1,15 @@
 ---
+import { sidebarDomains } from "../../config/sidebar";
+
 const toTitle = (slug: string) =>
   slug
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
 
-const inicioPages = import.meta.glob("/src/pages/inicio/*.{md,mdx,astro}", { eager: true });
+type PageModule = { frontmatter?: { navOrder?: number; navLabel?: string } };
 
-const inicioTopics = Object.entries(inicioPages)
-  .map(([filePath, mod]) => ({ filePath, mod: mod as { frontmatter?: { navOrder?: number; navLabel?: string } } }))
-  .filter(({ filePath }) => !filePath.endsWith("/index.astro"))
-  .map(({ filePath, mod }) => {
-    const fileName = filePath.split("/").pop() ?? "";
-    const slug = fileName.replace(/\.(md|mdx|astro)$/i, "");
-    const navOrder = Number(mod.frontmatter?.navOrder ?? Number.POSITIVE_INFINITY);
-    const navLabel = mod.frontmatter?.navLabel ?? toTitle(slug);
-    return {
-      label: navLabel,
-      href: `/inicio/${slug}`,
-      navOrder,
-    };
-  })
-  .sort((a, b) => a.navOrder - b.navOrder || a.label.localeCompare(b.label, "es"));
-
+type SidebarTopic = { label: string; href: string; navOrder: number };
 type SidebarSection = {
   title: string;
   topics: string[];
@@ -31,35 +18,45 @@ type SidebarSection = {
   topicHrefs?: string[];
 };
 
-const sections: SidebarSection[] = [
-  {
-    title: "Inicio",
-    icon: "home",
-    href: "/",
-    topics: inicioTopics.map((topic) => topic.label),
-    topicHrefs: inicioTopics.map((topic) => topic.href),
-  },
-  { title: "Fundamentos", icon: "rocket_launch", topics: ["Clean Code", "SOLID", "Code Smells", "Refactoring"] },
-  { title: "Arquitectura", icon: "account_tree", topics: ["Conceptos Base", "Capas", "Clean Architecture", "Hexagonal", "Modular", "Microservicios", "Event-Driven"] },
-  { title: "DDD", icon: "psychology", topics: ["Introducción", "Strategic Design", "Tactical Design", "Buenas Prácticas"] },
-  { title: "Estructura de Proyectos", icon: "folder_code", topics: ["Backend", "Frontend", "Monorepos", "Convenciones"] },
-  { title: "Patrones de Diseño", icon: "design_services", topics: ["Creacionales", "Estructurales", "Comportamiento", "Arquitecturales"] },
-  { title: "Backend Engineering", icon: "dns", topics: ["REST", "GraphQL", "Validación", "AuthN/AuthZ", "Errores", "Jobs", "Observabilidad"] },
-  { title: "Frontend Engineering", icon: "web", topics: ["Arquitectura", "React", "Estado", "Formularios", "UI/UX", "Performance"] },
-  { title: "Bases de Datos", icon: "database", topics: ["Modelado", "SQL", "NoSQL", "ORM", "Migraciones", "Performance"] },
-  { title: "Testing", icon: "science", topics: ["Fundamentos", "Unit", "Integration", "E2E", "TDD", "Calidad"] },
-  { title: "Seguridad", icon: "shield", topics: ["Fundamentos", "Vulnerabilidades", "Backend", "Frontend", "DevOps"] },
-  { title: "DevOps & Infra", icon: "deployed_code", topics: ["Docker", "Kubernetes", "CI/CD", "Cloud", "IaC", "Deployments"] },
-  { title: "Calidad de Código", icon: "rule", topics: ["Linters", "Static Analysis", "Code Review", "Métricas"] },
-  { title: "Git & Workflow", icon: "alt_route", topics: ["Basics", "Workflows", "Commits", "PRs", "Versionado"] },
-  { title: "Performance & Escalabilidad", icon: "speed", topics: ["Backend", "Frontend", "Escalabilidad", "Caching"] },
-  { title: "Observabilidad", icon: "monitoring", topics: ["Logging", "Metrics", "Tracing", "Monitoring"] },
-  { title: "Documentación Técnica", icon: "description", topics: ["README", "ADRs", "Diagramas", "API Docs", "Knowledge Mgmt"] },
-  { title: "Principios Profesionales", icon: "school", topics: ["Ingeniería", "Decisiones", "Comunicación", "Trabajo en Equipo"] },
-  { title: "Tooling & Ecosistema", icon: "build", topics: ["Editores", "CLI", "Productividad", "AI Engineering"] },
-  { title: "Roadmaps", icon: "map", topics: ["Backend", "Frontend", "DevOps", "Architecture", "DDD", "Security"] },
-  { title: "Recursos", icon: "menu_book", topics: ["Libros", "Blogs", "Cursos", "YouTube", "Papers", "OSS", "Cheat Sheets"] },
-];
+const allPages = import.meta.glob("/src/pages/**/*.{md,mdx,astro}", { eager: true });
+
+const toHref = (filePath: string) => {
+  const withoutSrcPages = filePath.replace(/^\/src\/pages/, "");
+  const withoutExt = withoutSrcPages.replace(/\.(md|mdx|astro)$/i, "");
+  const routePath = withoutExt.replace(/\/index$/i, "");
+  return routePath === "" ? "/" : routePath;
+};
+
+const buildTopicsForDir = (pagesDir: string) =>
+  Object.entries(allPages)
+    .map(([filePath, mod]) => ({ filePath, mod: mod as PageModule }))
+    .filter(({ filePath }) => filePath.startsWith(`${pagesDir}/`))
+    .filter(({ filePath }) => !filePath.endsWith("/index.astro"))
+    .map(({ filePath, mod }) => {
+      const fileName = filePath.split("/").pop() ?? "";
+      const slug = fileName.replace(/\.(md|mdx|astro)$/i, "");
+      const navOrder = Number(mod.frontmatter?.navOrder ?? Number.POSITIVE_INFINITY);
+      const navLabel = mod.frontmatter?.navLabel ?? toTitle(slug);
+      return {
+        label: navLabel,
+        href: toHref(filePath),
+        navOrder,
+      };
+    })
+    .sort((a, b) => a.navOrder - b.navOrder || a.label.localeCompare(b.label, "es"));
+
+const sections: SidebarSection[] = sidebarDomains
+  .map((domain) => {
+    const topics: SidebarTopic[] = buildTopicsForDir(domain.pagesDir);
+    return {
+      title: domain.title,
+      icon: domain.icon,
+      href: domain.href ?? topics[0]?.href ?? "#",
+      topics: topics.map((topic) => topic.label),
+      topicHrefs: topics.map((topic) => topic.href),
+    };
+  })
+  .filter((section) => section.topics.length > 0);
 ---
 
 <aside>
