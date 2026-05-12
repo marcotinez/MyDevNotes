@@ -1,0 +1,26 @@
+---
+navOrder: 1
+navLabel: "Bienvenida"
+---
+
+import DocsPageLayout from "../../layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Bienvenida | MyDevNotes"
+  section="Inicio"
+  pageTitle="Bienvenida"
+  pageDescription="Qué es MyDevNotes, cómo navegarla y qué principios la guían."
+  nextPage={{ href: "/inicio/vision-general", label: "Visión general" }}
+>
+MyDevNotes es mi cuaderno técnico personal. Reúne prácticas, decisiones y aprendizajes que uso en proyectos reales para mantener criterio técnico consistente.
+
+## Cómo usar la wiki
+
+- Usa la sidebar para ubicar dominio y subtema.
+- Empieza por fundamentos si estás creando criterio.
+- Usa cada nota como checklist antes de implementar.
+
+## Filosofía de la wiki
+
+Prioriza claridad, simplicidad y aplicabilidad. Cada entrada debe mejorar decisiones reales, no solo resumir teoría.
+</DocsPageLayout>
