@@ -1,5 +1,6 @@
 ---
 import "../styles/wiki.css";
+import SearchModal from "../components/global/SearchModal.astro";
 import TailwindHead from "../components/global/TailwindHead.astro";
 
 interface Props {
@@ -10,7 +11,7 @@ const { title = "MyDevNotes" } = Astro.props;
 ---
 
 <!doctype html>
-<html class="light" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -18,10 +19,28 @@ const { title = "MyDevNotes" } = Astro.props;
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <TailwindHead />
+    <script is:inline>
+      (() => {
+        const storageKey = "theme-preference";
+        const storedTheme = localStorage.getItem(storageKey);
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme =
+          storedTheme === "dark" || storedTheme === "light"
+            ? storedTheme
+            : systemPrefersDark
+              ? "dark"
+              : "light";
+
+        document.documentElement.classList.remove("light", "dark");
+        document.documentElement.classList.add(theme);
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body
-    class="min-h-screen flex flex-col bg-background text-on-surface font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container"
+    class="min-h-screen flex flex-col bg-background dark:bg-[#090a0d] text-on-surface dark:text-slate-100 font-body-md text-body-md antialiased selection:bg-primary-container selection:text-on-primary-container"
   >
     <slot />
+    <SearchModal />
   </body>
 </html>

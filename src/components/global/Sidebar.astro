@@ -15,14 +15,22 @@ type SidebarSection = {
   topics: string[];
   icon: string;
   topicHrefs?: string[];
+  href: string;
+  isActive: boolean;
 };
 
 const allPages = import.meta.glob("/src/pages/**/*.{md,mdx,astro}", { eager: true });
+const currentPath = Astro.url.pathname.replace(/\/+$/u, "") || "/";
 
 const toHref = (filePath: string) => {
   const withoutSrcPages = filePath.replace(/^\/src\/pages/, "");
   const withoutExt = withoutSrcPages.replace(/\.(md|mdx|astro)$/i, "");
   const routePath = withoutExt.replace(/\/index$/i, "");
+  return routePath === "" ? "/" : routePath;
+};
+
+const toSectionRootHref = (pagesDir: string) => {
+  const routePath = pagesDir.replace(/^\/src\/pages/, "");
   return routePath === "" ? "/" : routePath;
 };
 
@@ -47,22 +55,33 @@ const buildTopicsForDir = (pagesDir: string) =>
 const sections: SidebarSection[] = sidebarDomains
   .map((domain) => {
     const topics: SidebarTopic[] = buildTopicsForDir(domain.pagesDir);
+    const sectionHref = domain.href ?? topics[0]?.href ?? "#";
+    const sectionRootHref = toSectionRootHref(domain.pagesDir);
+    const topicHrefs = topics.map((topic) => topic.href);
+    const isActive =
+      currentPath === sectionHref ||
+      topicHrefs.some((href) => href === currentPath) ||
+      (sectionRootHref !== "/" && currentPath.startsWith(`${sectionRootHref}/`)) ||
+      (domain.pagesDir === "/src/pages/inicio" && currentPath.startsWith("/inicio/"));
+
     return {
       title: domain.title,
       icon: domain.icon,
       topics: topics.map((topic) => topic.label),
-      topicHrefs: topics.map((topic) => topic.href),
+      topicHrefs,
+      href: sectionHref,
+      isActive,
     };
   })
   .filter((section) => section.topics.length > 0);
 ---
 
 <aside>
-  <div class="hidden xl:flex fixed left-0 top-16 z-40 flex-col p-md gap-xs bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline w-sidebar_width h-[calc(100vh-64px)] overflow-y-auto">
+  <div class="hidden xl:flex fixed left-0 top-16 z-40 flex-col p-md gap-xs bg-surface-container-lowest dark:bg-[#090a0d] border-r border-outline-variant dark:border-slate-800 w-sidebar_width h-[calc(100vh-64px)] overflow-y-auto">
     <nav class="flex flex-col gap-sm mb-md">
-      {sections.map((section, idx) => (
-        <details class="group" open={idx === 0}>
-          <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${idx === 0 ? "bg-secondary-container dark:bg-secondary-fixed-dim text-on-secondary-container dark:text-on-secondary-fixed rounded-full font-medium" : "text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high rounded-lg"}`}>
+      {sections.map((section) => (
+        <details class="group" open={section.isActive}>
+          <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${section.isActive ? "bg-secondary-container dark:bg-[#16284e] text-on-secondary-container dark:text-slate-100 rounded-full font-medium" : "text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-low dark:hover:bg-[#131722] dark:hover:text-slate-100 rounded-lg"}`}>
             <span class="flex items-center gap-sm min-w-0 grow">
               <span class="material-symbols-outlined text-[20px]">{section.icon}</span>
               <span class="truncate">{section.title}</span>
@@ -74,7 +93,11 @@ const sections: SidebarSection[] = sidebarDomains
               <li>
                 <a
                   href={section.topicHrefs?.[topicIdx] ?? "#"}
-                  class="block py-[2px] text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-label-sm text-label-sm leading-5"
+                  class={`block py-[2px] font-label-sm text-label-sm leading-5 ${
+                    section.topicHrefs?.[topicIdx] === currentPath
+                      ? "text-primary dark:text-[#8ab0ff] font-medium"
+                      : "text-on-surface-variant dark:text-slate-400 hover:text-primary dark:hover:text-slate-100"
+                  }`}
                 >
                   {topic}
                 </a>
@@ -94,10 +117,10 @@ const sections: SidebarSection[] = sidebarDomains
       aria-label="Cerrar navegación"
       data-sidebar-backdrop
     ></button>
-    <div class="fixed left-0 top-0 z-[80] w-[300px] h-screen bg-surface-container-lowest border-r border-outline-variant p-md overflow-y-auto shadow-xl">
-      {sections.map((section, idx) => (
-        <details class="group mb-sm" open={idx === 0}>
-          <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${idx === 0 ? "bg-secondary-container dark:bg-secondary-fixed-dim text-on-secondary-container dark:text-on-secondary-fixed rounded-full font-medium" : "text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-low dark:hover:bg-surface-container-high rounded-lg"}`}>
+    <div class="fixed left-0 top-0 z-[80] w-[300px] h-screen bg-surface-container-lowest dark:bg-[#090a0d] border-r border-outline-variant dark:border-slate-800 p-md overflow-y-auto shadow-xl">
+      {sections.map((section) => (
+        <details class="group mb-sm" open={section.isActive}>
+          <summary class={`list-none cursor-pointer flex items-center justify-between gap-sm px-sm py-xs transition-all scale-95 active:scale-100 font-label-md text-label-md ${section.isActive ? "bg-secondary-container dark:bg-[#16284e] text-on-secondary-container dark:text-slate-100 rounded-full font-medium" : "text-on-surface-variant dark:text-slate-400 hover:bg-surface-container-low dark:hover:bg-[#131722] dark:hover:text-slate-100 rounded-lg"}`}>
             <span class="flex items-center gap-sm min-w-0 grow">
               <span class="material-symbols-outlined text-[20px]">{section.icon}</span>
               <span class="truncate">{section.title}</span>
@@ -109,7 +132,11 @@ const sections: SidebarSection[] = sidebarDomains
               <li>
                 <a
                   href={section.topicHrefs?.[topicIdx] ?? "#"}
-                  class="block py-[2px] text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-label-sm text-label-sm leading-5"
+                  class={`block py-[2px] font-label-sm text-label-sm leading-5 ${
+                    section.topicHrefs?.[topicIdx] === currentPath
+                      ? "text-primary dark:text-[#8ab0ff] font-medium"
+                      : "text-on-surface-variant dark:text-slate-400 hover:text-primary dark:hover:text-slate-100"
+                  }`}
                 >
                   {topic}
                 </a>

@@ -17,61 +17,92 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
 ---
 
 <HomeLayout title={title}>
-  <div class="min-h-screen flex flex-col">
+  <div class="min-h-screen flex flex-col bg-background dark:bg-[#090a0d]">
     <Navbar />
-    <div class="flex-1 w-full xl:pl-sidebar_width">
+    <div class="flex-1 w-full xl:pl-sidebar_width bg-background dark:bg-[#090a0d]">
       <Sidebar />
-      <main class="w-full flex justify-center px-lg py-xl">
-        <div class="max-w-content_max_width w-full min-h-[calc(100vh-64px-80px)] flex flex-col gap-xl">
-          <nav class="flex items-center gap-sm font-label-sm text-label-sm text-outline sticky top-[64px] bg-surface z-40 py-sm">
-            <a class="hover:text-primary transition-colors" href="/">MyDevNotes</a>
-            <span>/</span>
-            <a class="hover:text-primary transition-colors" href="/inicio/bienvenida">{section}</a>
-            <span>/</span>
-            <span class="text-on-surface">{pageTitle}</span>
-          </nav>
-
-          <header class="flex flex-col gap-md">
-            <h1 class="font-headline-xl text-headline-xl text-on-background">{pageTitle}</h1>
-            {pageDescription && (
-              <p class="font-body-lg text-body-lg text-on-surface-variant">{pageDescription}</p>
-            )}
-          </header>
-
-          <article
-            class="prose prose-slate max-w-none flex-1 prose-headings:font-headline-lg prose-headings:text-on-background prose-p:font-body-md prose-p:text-on-surface prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary prose-strong:text-on-surface prose-ul:text-on-surface-variant prose-ol:text-on-surface-variant prose-li:marker:text-outline prose-code:font-code-block prose-code:text-slate-800 prose-pre:rounded-xl prose-pre:border prose-pre:border-amber-200 prose-pre:bg-[#fbf3e3] prose-pre:text-slate-900 prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-surface-container-low prose-blockquote:text-on-surface-variant prose-blockquote:rounded-r-lg dark:prose-invert"
-          >
-            <slot />
-          </article>
-
-          {(prevPage || nextPage) && (
-            <nav class="mt-auto pt-md border-t border-outline-variant/70">
-              <div class="flex items-center justify-between gap-md">
-              {prevPage ? (
-                <a
-                  href={prevPage.href}
-                  class="inline-flex items-center gap-xs rounded-lg border border-primary/40 bg-surface-container-lowest px-md py-sm text-primary hover:bg-primary hover:text-on-primary transition-colors font-label-md text-label-md"
-                >
-                  <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                  <span>Anterior: {prevPage.label}</span>
-                </a>
-              ) : (
-                <span />
-              )}
-              {nextPage ? (
-                <a
-                  href={nextPage.href}
-                  class="inline-flex items-center gap-xs rounded-lg border border-primary bg-primary text-on-primary px-md py-sm hover:bg-primary-container hover:text-on-primary-container transition-colors font-label-md text-label-md"
-                >
-                  <span>Siguiente: {nextPage.label}</span>
-                  <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-                </a>
-              ) : (
-                <span />
-              )}
-              </div>
+      <main class="w-full flex justify-center px-lg py-xl bg-background dark:bg-[#090a0d]">
+        <div class="w-full max-w-[1200px] min-h-[calc(100vh-64px-80px)] grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-xl">
+          <section class="min-w-0 flex flex-col gap-xl bg-background dark:bg-[#090a0d]">
+            <nav class="flex items-center gap-sm font-label-sm text-label-sm text-outline dark:text-slate-500 sticky top-[64px] bg-surface dark:bg-[#090a0d] z-40 py-sm">
+              <a class="hover:text-primary transition-colors" href="/">MyDevNotes</a>
+              <span>/</span>
+              <a class="hover:text-primary transition-colors" href="/inicio/bienvenida">{section}</a>
+              <span>/</span>
+              <span class="text-on-surface dark:text-slate-100">{pageTitle}</span>
             </nav>
-          )}
+
+            <div data-pagefind-body class="flex flex-col gap-xl">
+              <header class="flex flex-col gap-md">
+                <h1 class="font-headline-xl text-headline-xl text-on-background dark:text-slate-50">{pageTitle}</h1>
+                {pageDescription && (
+                  <p class="font-body-lg text-body-lg text-on-surface-variant dark:text-slate-300">{pageDescription}</p>
+                )}
+              </header>
+
+              <details class="group xl:hidden border border-outline-variant/70 dark:border-slate-800 rounded-2xl bg-surface-container-lowest dark:bg-[#111319] shadow-sm" id="mobile-toc">
+                <summary class="list-none cursor-pointer flex items-center justify-between gap-sm px-md py-sm font-label-md text-label-md text-on-surface dark:text-slate-100">
+                  <span class="flex items-center gap-sm">
+                    <span class="material-symbols-outlined text-[20px]">toc</span>
+                    <span>En esta página</span>
+                  </span>
+                  <span class="material-symbols-outlined text-[18px] transition-transform group-open:rotate-180">expand_more</span>
+                </summary>
+                <div class="px-md pb-md pt-xs border-t border-outline-variant/50 dark:border-slate-800">
+                  <ul data-mobile-toc-list class="space-y-xs"></ul>
+                  <p data-mobile-toc-empty class="font-body-sm text-body-sm text-on-surface-variant dark:text-slate-400">
+                    No hay secciones en este artículo.
+                  </p>
+                </div>
+              </details>
+
+              <article
+                data-docs-content
+                class="prose max-w-none flex-1 prose-headings:font-headline-lg prose-headings:text-on-background dark:prose-headings:text-slate-50 prose-p:font-body-md prose-p:text-on-surface dark:prose-p:text-slate-200 prose-p:leading-relaxed prose-a:text-primary hover:prose-a:text-primary prose-strong:text-on-surface dark:prose-strong:text-slate-100 prose-ul:text-on-surface-variant dark:prose-ul:text-slate-300 prose-ol:text-on-surface-variant dark:prose-ol:text-slate-300 prose-li:marker:text-outline dark:prose-li:marker:text-slate-500 prose-code:font-code-block prose-code:text-slate-800 dark:prose-code:text-slate-100 prose-pre:rounded-xl prose-pre:border prose-pre:border-amber-200 dark:prose-pre:border-slate-700 prose-pre:bg-[#fbf3e3] dark:prose-pre:bg-[#10141d] prose-pre:text-slate-900 dark:prose-pre:text-slate-100 prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-surface-container-low dark:prose-blockquote:bg-[#131722] prose-blockquote:text-on-surface-variant dark:prose-blockquote:text-slate-300 prose-blockquote:rounded-r-lg prose-th:text-on-surface dark:prose-th:text-slate-100 prose-td:text-on-surface-variant dark:prose-td:text-slate-300 prose-th:border-outline-variant prose-td:border-outline-variant dark:prose-invert"
+              >
+                <slot />
+              </article>
+            </div>
+
+            {(prevPage || nextPage) && (
+              <nav class="mt-auto pt-md border-t border-outline-variant/70 dark:border-slate-800">
+                <div class="flex items-center justify-between gap-md">
+                {prevPage ? (
+                  <a
+                    href={prevPage.href}
+                    class="inline-flex items-center gap-xs rounded-lg border border-primary/40 dark:border-[#29437a] bg-surface-container-lowest dark:bg-[#111319] px-md py-sm text-primary dark:text-[#8ab0ff] hover:bg-primary hover:text-on-primary dark:hover:bg-[#16284e] dark:hover:text-slate-100 transition-colors font-label-md text-label-md"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span>Anterior: {prevPage.label}</span>
+                  </a>
+                ) : (
+                  <span />
+                )}
+                {nextPage ? (
+                  <a
+                    href={nextPage.href}
+                    class="inline-flex items-center gap-xs rounded-lg border border-primary dark:border-[#3560b8] bg-primary dark:bg-[#1d4ed8] text-on-primary dark:text-white px-md py-sm hover:bg-primary-container hover:text-on-primary-container dark:hover:bg-[#2563eb] dark:hover:text-white transition-colors font-label-md text-label-md"
+                  >
+                    <span>Siguiente: {nextPage.label}</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </a>
+                ) : (
+                  <span />
+                )}
+                </div>
+              </nav>
+            )}
+          </section>
+
+          <aside class="hidden xl:block">
+            <div class="sticky top-[164px] max-h-[calc(100vh-178px)] overflow-auto border-l border-outline-variant/70 dark:border-slate-800 pl-md">
+              <h2 class="font-body-md text-body-md font-bold text-on-surface dark:text-slate-100 mb-sm">En esta página</h2>
+              <ul data-toc-list class="space-y-xs"></ul>
+              <p data-toc-empty class="font-body-sm text-body-sm text-on-surface-variant dark:text-slate-400">
+                No hay secciones en este artículo.
+              </p>
+            </div>
+          </aside>
         </div>
       </main>
     </div>
@@ -93,7 +124,7 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
       button.type = "button";
       button.textContent = "Copiar";
       button.className =
-        "absolute top-2 right-2 rounded-md border border-outline-variant bg-surface/90 px-2 py-1 text-[11px] leading-none font-label-sm text-on-surface-variant hover:text-primary hover:border-primary transition-colors";
+        "absolute top-2 right-2 rounded-md border border-outline-variant dark:border-slate-700 bg-surface/90 dark:bg-[#0f1117]/90 px-2 py-1 text-[11px] leading-none font-label-sm text-on-surface-variant dark:text-slate-400 hover:text-primary hover:border-primary transition-colors";
 
       button.addEventListener("click", async () => {
         const code = codeEl.textContent ?? "";
@@ -122,5 +153,96 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
     document.addEventListener("DOMContentLoaded", enhanceCodeBlocks);
   } else {
     enhanceCodeBlocks();
+  }
+
+  const slugify = (text) =>
+    text
+      .toLowerCase()
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+
+  const content = document.querySelector("[data-docs-content]");
+  const tocList = document.querySelector("[data-toc-list]");
+  const emptyState = document.querySelector("[data-toc-empty]");
+  const mobileTocList = document.querySelector("[data-mobile-toc-list]");
+  const mobileEmptyState = document.querySelector("[data-mobile-toc-empty]");
+  const mobileToc = document.getElementById("mobile-toc");
+
+  if (content && tocList && emptyState && mobileTocList && mobileEmptyState) {
+    const headings = Array.from(content.querySelectorAll("h2, h3"));
+    const usedIds = new Set();
+
+    const getUniqueId = (base) => {
+      if (!usedIds.has(base)) {
+        usedIds.add(base);
+        return base;
+      }
+      let index = 2;
+      while (usedIds.has(`${base}-${index}`)) index += 1;
+      const nextId = `${base}-${index}`;
+      usedIds.add(nextId);
+      return nextId;
+    };
+
+    headings.forEach((heading) => {
+      const fallback = slugify(heading.textContent || "section") || "section";
+      const rawId = heading.id || fallback;
+      heading.id = getUniqueId(rawId);
+    });
+
+    if (headings.length > 0) {
+      emptyState.classList.add("hidden");
+      tocList.classList.remove("hidden");
+      mobileEmptyState.classList.add("hidden");
+      mobileTocList.classList.remove("hidden");
+      headings.forEach((heading) => {
+        const item = document.createElement("li");
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = heading.textContent || "";
+        button.dataset.target = heading.id;
+        button.className =
+          "w-full text-left text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors font-body-sm text-body-sm";
+        if (heading.tagName === "H3") {
+          item.className = "pl-md";
+        }
+        button.addEventListener("click", () => {
+          heading.scrollIntoView({ behavior: "smooth", block: "start" });
+          history.replaceState(null, "", window.location.pathname + window.location.search);
+          mobileToc?.removeAttribute("open");
+        });
+        item.appendChild(button);
+        tocList.appendChild(item);
+
+        const mobileItem = item.cloneNode(false);
+        const mobileButton = button.cloneNode(true);
+        mobileButton.addEventListener("click", () => {
+          heading.scrollIntoView({ behavior: "smooth", block: "start" });
+          history.replaceState(null, "", window.location.pathname + window.location.search);
+          mobileToc?.removeAttribute("open");
+        });
+        mobileItem.appendChild(mobileButton);
+        mobileTocList.appendChild(mobileItem);
+      });
+
+      const buttons = Array.from(tocList.querySelectorAll("button"));
+      const mobileButtons = Array.from(mobileTocList.querySelectorAll("button"));
+      buttons.forEach((button) => {
+        button.classList.add("text-on-surface-variant", "dark:text-slate-400");
+      });
+      mobileButtons.forEach((button) => {
+        button.classList.add("text-on-surface-variant", "dark:text-slate-400");
+      });
+    } else {
+      emptyState.classList.remove("hidden");
+      tocList.classList.add("hidden");
+      mobileEmptyState.classList.remove("hidden");
+      mobileTocList.classList.add("hidden");
+      mobileToc?.classList.add("hidden");
+    }
   }
 </script>

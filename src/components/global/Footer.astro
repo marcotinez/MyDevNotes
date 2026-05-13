@@ -1,28 +1,72 @@
 ---
+interface Props {
+  variant?: "docs" | "home";
+}
+
 const links = [
   { label: "Home", href: "/" },
   { label: "LinkedIn", href: "https://www.linkedin.com/in/marcotinez/" },
   { label: "GitHub", href: "https://github.com/marcotinez" },
 ];
+
+const { variant = "docs" } = Astro.props;
 ---
 
-<footer class="bg-surface dark:bg-inverse-surface border-t border-outline-variant/40 dark:border-outline/40 py-md mt-md xl:pl-sidebar_width">
-  <div class="max-w-container_max_width mx-auto px-lg flex flex-col items-center gap-sm">
-    <div class="font-headline-md text-headline-md text-primary font-bold">MyDevNotes</div>
-    <div class="flex flex-wrap justify-center gap-sm">
-      {links.map((link) => (
-        <a
-          href={link.href}
-          target={link.href.startsWith("http") ? "_blank" : undefined}
-          rel={link.href.startsWith("http") ? "noreferrer noopener" : undefined}
-          class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors font-label-sm text-label-sm"
-        >
-          {link.label}
-        </a>
-      ))}
+<footer class="bg-surface dark:bg-[#090a0d] py-xl mt-[120px] xl:pl-sidebar_width">
+  {variant === "docs" ? (
+    <div class="w-full flex justify-center px-lg">
+      <div class="w-full max-w-[1200px] grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-xl">
+        <div class="min-w-0">
+          <div class="flex flex-col gap-sm md:flex-row md:items-center md:justify-between">
+            <div class="min-w-0">
+              <div class="font-headline-md text-headline-md text-primary dark:text-inverse-primary font-bold">MyDevNotes</div>
+              <div class="text-on-surface-variant dark:text-outline-variant font-label-sm text-label-sm">
+                © 2026 MyDevNotes. Construido con precisión.
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-md md:justify-end">
+              {links.map((link) => (
+                <a
+                  href={link.href}
+                  target={link.href.startsWith("http") ? "_blank" : undefined}
+                  rel={link.href.startsWith("http") ? "noreferrer noopener" : undefined}
+                  class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors font-label-sm text-label-sm"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div class="hidden xl:block" aria-hidden="true"></div>
+      </div>
     </div>
-    <div class="text-on-surface-variant dark:text-outline-variant font-label-sm text-label-sm leading-none">
-      © 2026 MyDevNotes. Construido con precisión.
+  ) : (
+    <div class="w-full flex justify-center px-lg">
+      <div class="w-full max-w-content_max_width">
+        <div class="flex flex-col gap-sm md:flex-row md:items-center md:justify-between">
+          <div class="min-w-0">
+            <div class="font-headline-md text-headline-md text-primary dark:text-inverse-primary font-bold">MyDevNotes</div>
+            <div class="text-on-surface-variant dark:text-outline-variant font-label-sm text-label-sm">
+              © 2026 MyDevNotes. Construido con precisión.
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-md md:justify-end">
+            {links.map((link) => (
+              <a
+                href={link.href}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
+                rel={link.href.startsWith("http") ? "noreferrer noopener" : undefined}
+                class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary transition-colors font-label-sm text-label-sm"
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  )}
 </footer>

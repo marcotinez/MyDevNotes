@@ -1,0 +1,235 @@
+---
+---
+
+<div
+  class="hidden fixed inset-0 z-[90]"
+  data-search-modal
+  aria-hidden="true"
+>
+  <button
+    type="button"
+    class="absolute inset-0 bg-black/35 border-0 p-0 m-0 cursor-default"
+    aria-label="Cerrar búsqueda"
+    data-search-close
+  ></button>
+
+  <div class="relative z-[91] flex min-h-full items-start justify-center px-md py-[10vh]" data-search-dialog-wrap>
+    <div class="w-full max-w-3xl rounded-3xl border border-outline-variant dark:border-slate-800 bg-surface dark:bg-[#0f1117] shadow-2xl overflow-hidden" data-search-dialog>
+      <div class="border-b border-outline-variant/60 dark:border-slate-800 px-md py-md">
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-outline dark:text-slate-500 text-[22px]">
+            search
+          </span>
+          <input
+            data-search-modal-input
+            class="w-full rounded-2xl border border-outline-variant dark:border-slate-700 bg-surface-container-lowest dark:bg-[#141821] py-md pl-[52px] pr-[52px] font-body-md text-body-md text-on-surface dark:text-slate-100 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-fixed-dim transition-all"
+            type="text"
+            placeholder="Buscar temas, patrones o decisiones..."
+            aria-label="Buscar en toda la wiki"
+          />
+          <button
+            type="button"
+            data-search-clear
+            class="absolute right-md top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-8 w-8 rounded-lg text-on-surface-variant dark:text-slate-400 hover:text-primary transition-colors"
+            aria-label="Limpiar búsqueda"
+          >
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="max-h-[65vh] overflow-y-auto px-md py-md">
+        <p data-search-hint class="font-body-md text-body-md text-on-surface-variant dark:text-slate-400">
+          Escribe para buscar conceptos, páginas y coincidencias dentro del contenido.
+        </p>
+        <p data-search-loading class="hidden font-body-md text-body-md text-on-surface-variant dark:text-slate-400">
+          Buscando...
+        </p>
+        <p data-search-empty class="hidden font-body-md text-body-md text-on-surface-variant dark:text-slate-400">
+          No se encontraron resultados.
+        </p>
+        <p data-search-error class="hidden font-body-md text-body-md text-on-surface-variant dark:text-slate-400">
+          El índice de búsqueda no está disponible todavía. Genera el sitio con `npm run build` para crear la búsqueda.
+        </p>
+        <div data-search-results class="hidden flex flex-col gap-sm"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  const searchModal = document.querySelector("[data-search-modal]");
+  const searchModalInput = document.querySelector("[data-search-modal-input]");
+  const searchCloseButtons = document.querySelectorAll("[data-search-close]");
+  const searchClearButton = document.querySelector("[data-search-clear]");
+  const searchHint = document.querySelector("[data-search-hint]");
+  const searchLoading = document.querySelector("[data-search-loading]");
+  const searchEmpty = document.querySelector("[data-search-empty]");
+  const searchError = document.querySelector("[data-search-error]");
+  const searchResults = document.querySelector("[data-search-results]");
+  const searchTriggers = document.querySelectorAll("[data-search-trigger]");
+  const searchOpenButtons = document.querySelectorAll("[data-open-search]");
+  const searchDialogWrap = document.querySelector("[data-search-dialog-wrap]");
+  const searchDialog = document.querySelector("[data-search-dialog]");
+
+  let pagefindModulePromise;
+  let activeSearchToken = 0;
+
+  const resetSearchState = () => {
+    searchHint?.classList.add("hidden");
+    searchLoading?.classList.add("hidden");
+    searchEmpty?.classList.add("hidden");
+    searchError?.classList.add("hidden");
+    searchResults?.classList.add("hidden");
+    if (searchResults) searchResults.innerHTML = "";
+  };
+
+  const showHint = () => {
+    resetSearchState();
+    searchHint?.classList.remove("hidden");
+  };
+
+  const openSearchModal = (initialValue = "") => {
+    if (!searchModal || !searchModalInput) return;
+    searchModal.classList.remove("hidden");
+    searchModal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("overflow-hidden");
+    searchModalInput.value = initialValue;
+    window.requestAnimationFrame(() => {
+      searchModalInput.focus();
+      searchModalInput.setSelectionRange(searchModalInput.value.length, searchModalInput.value.length);
+    });
+  };
+
+  const closeSearchModal = () => {
+    if (!searchModal || !searchModalInput) return;
+    searchModal.classList.add("hidden");
+    searchModal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("overflow-hidden");
+    searchModalInput.value = "";
+    showHint();
+  };
+
+  const loadPagefind = async () => {
+    if (!pagefindModulePromise) {
+      pagefindModulePromise = import("/pagefind/pagefind.js");
+    }
+    return pagefindModulePromise;
+  };
+
+  const renderResults = (results) => {
+    if (!searchResults) return;
+    searchResults.innerHTML = "";
+    results.forEach((result) => {
+      const resultUrl = result.url || "#";
+      const title = result.meta?.title || result.url || "Resultado";
+      const excerpt = result.excerpt || "";
+
+      const link = document.createElement("a");
+      link.href = resultUrl;
+      link.className =
+        "block rounded-2xl border border-outline-variant/70 dark:border-slate-800 bg-surface-container-lowest dark:bg-[#141821] px-md py-md hover:border-primary hover:bg-surface-container-low dark:hover:bg-[#181d28] transition-colors";
+      link.innerHTML = `
+        <div class="font-label-sm text-label-sm text-on-surface dark:text-slate-100 font-semibold mb-xs">${resultUrl}</div>
+        <h3 class="font-headline-sm text-headline-sm text-on-surface dark:text-slate-100 mb-xs">${title}</h3>
+        <p class="font-body-sm text-body-sm text-on-surface-variant dark:text-slate-300">${excerpt}</p>
+      `;
+      link.addEventListener("click", () => {
+        closeSearchModal();
+      });
+      searchResults.appendChild(link);
+    });
+    searchResults.classList.remove("hidden");
+  };
+
+  const runSearch = async (query) => {
+    const trimmedQuery = query.trim();
+
+    if (!trimmedQuery) {
+      showHint();
+      return;
+    }
+
+    resetSearchState();
+    searchLoading?.classList.remove("hidden");
+
+    const searchToken = ++activeSearchToken;
+
+    try {
+      const pagefind = await loadPagefind();
+      const search = await pagefind.debouncedSearch(trimmedQuery, {}, 200);
+
+      if (searchToken !== activeSearchToken || search === null) return;
+
+      const results = await Promise.all(
+        search.results.map(async (result) => {
+          const data = await result.data();
+          return data;
+        })
+      );
+
+      if (searchToken !== activeSearchToken) return;
+
+      searchLoading?.classList.add("hidden");
+
+      if (!results.length) {
+        searchEmpty?.classList.remove("hidden");
+        return;
+      }
+
+      renderResults(results);
+    } catch {
+      if (searchToken !== activeSearchToken) return;
+      searchLoading?.classList.add("hidden");
+      searchError?.classList.remove("hidden");
+    }
+  };
+
+  showHint();
+
+  searchTriggers.forEach((trigger) => {
+    const openFromTrigger = () => {
+      openSearchModal(trigger.value || "");
+      runSearch(trigger.value || "");
+    };
+
+    trigger.addEventListener("focus", openFromTrigger);
+    trigger.addEventListener("input", openFromTrigger);
+    trigger.addEventListener("click", openFromTrigger);
+  });
+
+  searchOpenButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      openSearchModal("");
+      showHint();
+    });
+  });
+
+  searchClearButton?.addEventListener("click", () => {
+    if (!searchModalInput) return;
+    searchModalInput.value = "";
+    showHint();
+    searchModalInput.focus();
+  });
+
+  searchDialogWrap?.addEventListener("click", (event) => {
+    if (!searchDialog) return;
+    if (!searchDialog.contains(event.target)) {
+      closeSearchModal();
+    }
+  });
+
+  searchModalInput?.addEventListener("input", (event) => {
+    runSearch(event.currentTarget.value);
+  });
+
+  searchCloseButtons.forEach((button) => {
+    button.addEventListener("click", closeSearchModal);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && searchModal && !searchModal.classList.contains("hidden")) {
+      closeSearchModal();
+    }
+  });
+</script>
