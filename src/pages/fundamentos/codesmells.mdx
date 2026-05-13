@@ -1,0 +1,378 @@
+---
+navOrder: 2
+navLabel: "Code Smells"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Code Smells | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Code Smells"
+  pageDescription="Un code smell es una señal de alerta en el diseño del código: no siempre implica un bug, pero sí sugiere que algo puede estar dificultando la lectura, el mantenimiento o la evolución del sistema."
+  prevPage={{ href: "/fundamentos/cleancode", label: "Clean Code" }}
+  nextPage={{ href: "/fundamentos/refactoring", label: "Refactoring" }}
+>
+---
+Un *code smell* es un síntoma visible de que el diseño del código puede estar empezando a degradarse. No implica automáticamente un bug, ni significa que el sistema esté roto. El programa puede compilar, pasar tests y aun así estar acumulando fricción.
+
+Lo importante es que el *smell* suele anticipar un problema mayor: una parte que cuesta entender, una regla que se repite, una dependencia que se acopla demasiado o una función que ya hace más de lo que debería. Por eso se relaciona de forma directa con *Clean Code* y con varios principios de SOLID: ambos buscan que cambiar el software no sea doloroso.
+
+### Por qué importa detectarlos
+Cuando un *smell* aparece y se ignora, lo normal es que cada cambio futuro cueste un poco más:
+
+* hay más contexto que cargar para entender una pieza;
+* aumenta el riesgo de romper otra cosa al tocarla;
+* las revisiones se vuelven más lentas;
+* refactorizar después resulta más caro que hacerlo a tiempo.
+
+Detectarlos temprano no significa refactorizar todo de inmediato. Significa reconocer dónde está creciendo la fricción para decidir si conviene intervenir ahora o más adelante.
+
+### Smells comunes
+En lugar de ver un catálogo aislado, conviene mirar cada smell dentro de código concreto. Lo importante no es memorizar el nombre, sino reconocer la fricción que genera y entender qué cambio de diseño la reduce.
+
+### 1. Funciones demasiado largas
+Una función larga no es un problema por el número exacto de líneas, sino porque empieza a hacer demasiadas cosas o cambia constantemente de contexto mental.
+
+Suele mezclar validación, transformación, persistencia, integración externa y reglas de negocio en el mismo bloque. El resultado es que para entender una sola intención hay que leer demasiados detalles seguidos.
+
+Caso con demasiadas responsabilidades:
+
+```ts
+function publishPost(input: PostInput) {
+  if (!input.title) {
+    throw new Error("Title is required");
+  }
+
+  const slug = input.title.toLowerCase().replaceAll(" ", "-");
+  const post = {
+    title: input.title.trim(),
+    body: input.body.trim(),
+    slug,
+  };
+
+  database.posts.insert(post);
+  analytics.track("post_published", { slug: post.slug });
+  sendNotification(post.slug);
+}
+```
+
+En ese ejemplo, `publishPost` valida el input, construye el objeto, persiste datos, registra analítica y además notifica. Si falla una parte o cambia una regla, el lector tiene que revisar todo el flujo completo aunque solo le interese una de esas decisiones.
+
+Caso con responsabilidades separadas:
+
+```ts
+function validatePostInput(input: PostInput) {
+  if (!input.title) {
+    throw new Error("Title is required");
+  }
+}
+
+function buildPost(input: PostInput) {
+  return {
+    title: input.title.trim(),
+    body: input.body.trim(),
+    slug: input.title.toLowerCase().replaceAll(" ", "-"),
+  };
+}
+
+function publishPost(input: PostInput) {
+  validatePostInput(input);
+  const post = buildPost(input);
+
+  database.posts.insert(post);
+  analytics.track("post_published", { slug: post.slug });
+  sendNotification(post.slug);
+}
+```
+
+La segunda versión no hace menos trabajo. Simplemente reparte mejor las responsabilidades:
+
+* `validatePostInput` deja explícita la regla mínima de entrada.
+* `buildPost` concentra la transformación de datos.
+* `publishPost` queda como una función de orquestación.
+
+Eso mejora lectura y testing. Si mañana cambia la forma de construir el `slug`, puedes revisar `buildPost` sin tocar la validación ni el flujo general.
+
+Refactor habitual: `Extract Method`. En algunos casos también puede aparecer `Extract Function` o incluso `Extract Class` si la función concentra una responsabilidad más grande de lo razonable.
+
+### 2. Clases gigantes
+Una clase empieza a oler mal cuando concentra demasiadas decisiones: validación, persistencia, formateo, cálculo, integración externa y estado interno, todo junto.
+
+Eso suele romper la idea de responsabilidad única. Si una clase tiene demasiados motivos para cambiar, también tiene demasiados lugares donde equivocarse.
+
+Caso con demasiadas responsabilidades:
+
+```ts
+class ReportManager {
+  generateReport(data: Sale[]) {
+    return data.map((sale) => `${sale.id}: ${sale.total}`).join("\n");
+  }
+
+  saveReport(content: string) {
+    fileSystem.write("report.txt", content);
+  }
+
+  sendReportByEmail(content: string) {
+    emailClient.send({
+      to: "finance@company.com",
+      body: content,
+    });
+  }
+}
+```
+
+Aquí una sola clase prepara el reporte, lo guarda y lo envía. Parece práctico, pero mezcla formato, persistencia e integración externa. Si cambia el formato del reporte no deberías revisar también el código de email. Si cambia el proveedor de correo no deberías tocar la lógica de generación.
+
+Caso con responsabilidades separadas:
+
+```ts
+class ReportFormatter {
+  format(data: Sale[]) {
+    return data.map((sale) => `${sale.id}: ${sale.total}`).join("\n");
+  }
+}
+
+class ReportRepository {
+  save(content: string) {
+    fileSystem.write("report.txt", content);
+  }
+}
+
+class ReportMailer {
+  send(content: string) {
+    emailClient.send({
+      to: "finance@company.com",
+      body: content,
+    });
+  }
+}
+```
+
+Esta separación no existe para “tener más clases”, sino para aislar motivos de cambio. Cada pieza hace una cosa concreta y se vuelve más fácil de probar, reemplazar o modificar sin arrastrar al resto.
+
+Refactor habitual: `Extract Class`. Si además una parte del comportamiento pertenece conceptualmente a otro objeto, también puede combinarse con `Move Method`.
+
+### 3. Exceso de parámetros
+Una lista larga de parámetros suele indicar una de estas dos cosas:
+
+* la función conoce demasiado contexto;
+* varios datos siempre viajan juntos y deberían modelarse mejor.
+
+Caso difícil de leer:
+
+```ts
+function createReminder(
+  title: string,
+  description: string,
+  startDate: Date,
+  endDate: Date,
+  ownerId: string,
+  notifyByEmail: boolean,
+  notifyBySms: boolean,
+) {
+  // ...
+}
+```
+
+Caso con contexto agrupado:
+
+```ts
+type ReminderInput = {
+  title: string;
+  description: string;
+  startDate: Date;
+  endDate: Date;
+  ownerId: string;
+  notifications: {
+    email: boolean;
+    sms: boolean;
+  };
+};
+
+function createReminder(input: ReminderInput) {
+  // ...
+}
+```
+
+La versión larga obliga a recordar el orden de cada argumento y hace que una llamada sea más fácil de romper:
+
+```ts
+createReminder(
+  "Deploy",
+  "Release production",
+  startDate,
+  endDate,
+  userId,
+  true,
+  false,
+);
+```
+
+Al pasar a `ReminderInput`, el código gana contexto semántico. Ya no estás enviando “siete cosas”, sino un objeto con estructura clara. Además, si aparecen nuevas opciones relacionadas con notificaciones, es más natural extender `notifications` que seguir agregando booleanos sueltos.
+
+Refactor habitual: `Introduce Parameter Object`. Cuando ya existe un objeto relacionado que contiene esos datos, también puede aplicar `Preserve Whole Object`.
+
+### 4. Duplicación de código
+La duplicación no siempre es copia literal. A veces la estructura cambia un poco, pero la regla de negocio es la misma. Ese caso también huele mal.
+
+Caso duplicado:
+
+```ts
+function formatUserName(user: User) {
+  return `${user.firstName.trim()} ${user.lastName.trim()}`;
+}
+
+function formatAuthorName(author: Author) {
+  return `${author.firstName.trim()} ${author.lastName.trim()}`;
+}
+```
+
+Caso con regla compartida:
+
+```ts
+function formatFullName(firstName: string, lastName: string) {
+  return `${firstName.trim()} ${lastName.trim()}`;
+}
+
+function formatUserName(user: User) {
+  return formatFullName(user.firstName, user.lastName);
+}
+
+function formatAuthorName(author: Author) {
+  return formatFullName(author.firstName, author.lastName);
+}
+```
+
+La ventaja no es solo “tener menos líneas”. La ventaja real es cambiar una regla una sola vez. Si mañana decides normalizar espacios dobles o aplicar capitalización, la modificación vive en `formatFullName` y no en cada punto que arma un nombre.
+
+Refactor habitual: `Extract Method`. Si la duplicación ocurre entre subclases o jerarquías parecidas, también puede aparecer `Pull Up Method`.
+
+### 5. Condicionales complejos
+Muchos `if/else` anidados o `switch` demasiado grandes suelen indicar que la lógica de negocio está poco encapsulada.
+
+Caso difícil de seguir:
+
+```ts
+function calculateShipping(total: number, isPremium: boolean, country: string) {
+  if (country === "CL") {
+    if (isPremium) {
+      return 0;
+    }
+
+    if (total > 50000) {
+      return 0;
+    }
+
+    return 3990;
+  }
+
+  if (country === "AR") {
+    return 5990;
+  }
+
+  return 9990;
+}
+```
+
+Caso con intención más clara:
+
+```ts
+function hasFreeShippingInChile(total: number, isPremium: boolean) {
+  return isPremium || total > 50000;
+}
+
+function calculateShipping(total: number, isPremium: boolean, country: string) {
+  if (country === "CL") {
+    return hasFreeShippingInChile(total, isPremium) ? 0 : 3990;
+  }
+
+  if (country === "AR") {
+    return 5990;
+  }
+
+  return 9990;
+}
+```
+
+En la primera versión, la regla de envío gratis para Chile está escondida entre ramas y retornos. La segunda no elimina la condición, pero la nombra. Ese detalle importa porque convierte una implementación difusa en una regla visible: `hasFreeShippingInChile`.
+
+Si las variaciones siguen creciendo, el siguiente paso puede ser mover esa lógica a estrategias o políticas separadas. Primero conviene nombrar bien la decisión; después, si hace falta, desacoplarla.
+
+Refactor habitual: `Decompose Conditional`. Si cada rama representa comportamientos estables y crecientes, puede evolucionar a `Replace Conditional with Polymorphism`.
+
+### 6. Nombres poco claros
+Un nombre vago obliga a leer implementación para entender intención. Eso ralentiza todo: lectura, debugging, revisión y cambios.
+
+Caso opaco:
+
+```ts
+function handle(data: string) {
+  return data.trim().toLowerCase();
+}
+```
+
+Caso explícito:
+
+```ts
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
+```
+
+`handle` no dice nada sobre el propósito de la función. Podría validar, procesar, transformar o enviar datos. En cambio, `normalizeEmail` explica la intención antes de abrir el cuerpo.
+
+Cuando el nombre mejora, muchas veces desaparece la necesidad de comentar el código. Eso es una buena señal: el código empieza a explicarse solo.
+
+Refactor habitual: `Rename Method`, `Rename Function` o `Rename Variable`, según la pieza que esté ocultando la intención.
+
+### 7. Dependencias ocultas y acoplamiento innecesario
+Un *smell* común aparece cuando una clase conoce detalles internos de otra o navega por cadenas largas de llamadas.
+
+```ts
+const city = order.customer.address.city.name;
+```
+
+Ese tipo de acceso suele indicar que el consumidor sabe demasiado sobre la estructura interna de otros objetos. Si `customer`, `address` o `city` cambian de forma, el impacto se propaga a todos los consumidores que navegan esa cadena.
+
+Caso con mejor encapsulamiento:
+
+```ts
+class Order {
+  getCustomerCity() {
+    return this.customer.address.city.name;
+  }
+}
+
+const city = order.getCustomerCity();
+```
+
+La mejora no está en “esconder líneas”, sino en mover el conocimiento al lugar correcto. El código que usa `Order` deja de depender de la estructura interna del cliente y solo depende de una capacidad clara del objeto.
+
+Refactor habitual: `Hide Delegate`. Si el comportamiento realmente pertenece al objeto que hoy solo expone datos internos, también puede aplicar `Move Method`.
+
+### Cómo se conecta con Clean Code y SOLID
+Los *code smells* no son un tema aparte. Son la forma práctica de detectar cuándo los principios anteriores se están rompiendo.
+
+* Si una función hace demasiadas cosas, probablemente se está alejando de *Clean Code*.
+* Si una clase tiene demasiados motivos para cambiar, aparece una violación de responsabilidad única.
+* Si un cambio nuevo obliga a editar una cascada de condicionales, puede faltar una mejor separación de comportamientos.
+* Si una pieza depende de demasiados detalles concretos, el acoplamiento está subiendo.
+
+Dicho de otra forma: los *smells* son síntomas; los principios de diseño ayudan a entender la causa y a elegir el refactor adecuado.
+
+### Cuándo no obsesionarse
+Un *code smell* no obliga siempre a intervenir. Hay casos donde refactorizar en ese momento no compensa:
+
+* el código casi no vuelve a tocarse;
+* el cambio es urgente y el riesgo de reestructurar ahora es innecesario;
+* el olor existe, pero la alternativa agrega una abstracción peor;
+* todavía no hay suficiente contexto para saber cuál es el diseño correcto.
+
+La regla útil no es “eliminar todos los smells”, sino reducir la fricción que realmente afecta la evolución del sistema.
+
+### Regla práctica
+Si leer una pieza requiere demasiadas suposiciones, si un cambio pequeño obliga a tocar varios lugares o si una responsabilidad ya no está bien delimitada, probablemente hay un *code smell* que conviene revisar.
+
+No hace falta memorizar todos los nombres del catálogo. Lo importante es entrenar el criterio para detectar cuándo el código empieza a oler mal y qué refactor tiene sentido aplicar.
+</DocsPageLayout>

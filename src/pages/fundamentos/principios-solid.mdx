@@ -1,0 +1,246 @@
+---
+navOrder: 6
+navLabel: "Principios SOLID"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Principios SOLID | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Principios SOLID"
+  pageDescription="SOLID agrupa cinco principios de diseño orientado a objetos para escribir código más claro, flexible y mantenible. Aquí se ve qué significa cada letra y cuándo aporta valor."
+  prevPage={{ href: "/fundamentos/abstracciones-y-niveles-de-abstraccion", label: "Abstracciones y Niveles de Abstracción" }}
+>
+---
+SOLID no es una receta para agregar capas por costumbre. Es una guía para que el código cambie con menos fricción.
+En la práctica, ayuda a separar decisiones que antes se mezclaban: qué hace una clase, cuándo debería cambiar, qué contratos puede cumplir y de qué detalles técnicos conviene aislarse.
+Bien aplicado, SOLID no complica el diseño. Lo hace más estable para que crecer no implique reescribir todo.
+
+Cada letra representa un principio:
+
+| Letra | Principio | Idea corta |
+| --- | --- | --- |
+| `S` | Single Responsibility | Una clase, una responsabilidad. |
+| `O` | Open/Closed | Extender sin modificar lo ya probado. |
+| `L` | Liskov Substitution | Un subtipo no debe romper el contrato de su base. |
+| `I` | Interface Segregation | Mejor interfaces pequeñas y específicas. |
+| `D` | Dependency Inversion | Depender de abstracciones, no de detalles. |
+
+A continuación, una explicación breve de cada principio con ejemplos.
+
+### S - Responsabilidad única
+Una clase debería tener un solo motivo para cambiar. Si una misma pieza mezcla UI, persistencia y lógica de negocio, termina siendo más difícil de entender y probar.
+La utilidad real de este principio es que reduce el impacto de cada cambio: si una regla de negocio cambia, no deberías tocar código de presentación o infraestructura al mismo tiempo. También hace más claro qué parte del sistema está fallando cuando algo se rompe.
+
+Caso que mezcla responsabilidades:
+
+Aquí `Dashboard` hace dos trabajos distintos: dibuja la interfaz y además guarda información de versión. Eso parece cómodo al principio, pero en cuanto cambia una parte, terminas revisando código que no debería verse afectado por ese cambio.
+
+```ts
+class Dashboard {
+  render() {
+    console.log("render");
+  }
+
+  saveVersion(version: string) {
+    localStorage.setItem("version", version);
+  }
+}
+```
+
+Caso separado por responsabilidades:
+
+Aquí la persistencia queda en `VersionRepository` y la clase `Dashboard` vuelve a concentrarse en mostrar la interfaz. El cambio de una responsabilidad no arrastra a la otra, y eso mejora lectura y mantenimiento.
+
+```ts
+class VersionRepository {
+  save(version: string) {
+    localStorage.setItem("version", version);
+  }
+}
+
+class Dashboard {
+  constructor(private versionRepository: VersionRepository) {}
+
+  render() {
+    console.log("render");
+  }
+}
+```
+
+### O - Apertura/cierre
+El código debería permitir agregar comportamiento nuevo sin reescribir lo que ya funciona. Si cada caso nuevo obliga a editar un `switch` gigante, el diseño se vuelve frágil.
+No significa que todo deba ser abstracto desde el inicio. Significa que, cuando ya identificaste variaciones estables, puedes encapsularlas para extender el sistema sin tocar el núcleo que ya probaste.
+
+Caso que cambia todo el tiempo:
+
+Este ejemplo depende de un `kind` manual. Si mañana aparece un nuevo tipo de descuento, hay que abrir la función y agregar otra condición. Con eso el comportamiento nuevo queda mezclado con la lógica original.
+
+```ts
+function calculateDiscount(price: number, kind: "regular" | "student" | "vip") {
+  if (kind === "student") return price * 0.9;
+  if (kind === "vip") return price * 0.8;
+  return price;
+}
+```
+
+Caso extensible:
+
+Aquí el cálculo depende de una abstracción. El precio final sigue siendo el mismo punto de entrada, pero cada descuento se encapsula en una clase distinta. Agregar un nuevo tipo de descuento no obliga a tocar el cálculo principal.
+
+```ts
+interface Discount {
+  apply(price: number): number;
+}
+
+class StudentDiscount implements Discount {
+  apply(price: number) {
+    return price * 0.9;
+  }
+}
+
+class VipDiscount implements Discount {
+  apply(price: number) {
+    return price * 0.8;
+  }
+}
+
+function calculateTotal(price: number, discount: Discount) {
+  return discount.apply(price);
+}
+```
+
+### L - Sustitución de Liskov
+Si una función espera una clase base, cualquier subtipo debería funcionar sin sorpresas. Si una subclase tiene que lanzar errores o saltarse reglas para cumplir, el contrato está mal pensado.
+La idea no es solo herencia. La idea es confianza: si intercambias una implementación por otra, el código que la consume no debería tener que enterarse de detalles especiales ni agregar excepciones raras para sobrevivir.
+
+Caso que rompe el contrato:
+
+`Penguin` hereda de `Bird`, pero su implementación no puede cumplir el contrato implícito de `fly()`. Eso obliga al consumidor a conocer excepciones especiales, que es justo lo que Liskov intenta evitar.
+
+```ts
+class Bird {
+  fly() {
+    console.log("fly");
+  }
+}
+
+class Penguin extends Bird {
+  fly() {
+    throw new Error("Penguins do not fly");
+  }
+}
+```
+
+Caso con contratos más claros:
+
+En esta versión, las aves que vuelan implementan una interfaz concreta y el pingüino deja de fingir que puede volar. El código consumidor ya no necesita adivinar qué subclase sí cumple y cuál no.
+
+```ts
+interface FlyingBird {
+  fly(): void;
+}
+
+class Sparrow implements FlyingBird {
+  fly() {
+    console.log("fly");
+  }
+}
+
+class Penguin {
+  swim() {
+    console.log("swim");
+  }
+}
+```
+
+### I - Segregación de interfaces
+Si una interfaz es demasiado grande, obliga a depender de métodos que no hacen falta. Es mejor dividir la intención en piezas pequeñas y específicas.
+Esto evita el clásico problema de interfaces “dios” que terminan siendo difíciles de implementar y todavía más difíciles de usar. Una interfaz pequeña comunica mejor qué necesita realmente cada consumidor.
+
+Caso con una interfaz demasiado amplia:
+
+`Employee` expone demasiadas capacidades. El servicio de facturación solo necesita la tarifa, pero queda acoplado a métodos que no usa. Eso vuelve la dependencia más pesada de lo necesario.
+
+```ts
+interface Employee {
+  getRate(): number;
+  submitTimesheet(): void;
+  approveBudget(): void;
+  requestVacation(): void;
+}
+
+class BillingService {
+  constructor(private employee: Employee) {}
+
+  total() {
+    return this.employee.getRate();
+  }
+}
+```
+
+Caso con una interfaz enfocada:
+
+`Billable` declara solo lo que el servicio necesita. Esa reducción hace que la intención sea más clara y que el consumidor no arrastre responsabilidades ajenas.
+
+```ts
+interface Billable {
+  getRate(): number;
+}
+
+class BillingService {
+  constructor(private employee: Billable) {}
+
+  total() {
+    return this.employee.getRate();
+  }
+}
+```
+
+### D - Inversión de dependencia
+La lógica de alto nivel no debería depender de clases concretas de infraestructura. En su lugar, ambas capas dependen de una abstracción compartida.
+Este principio es el que más ayuda a probar y reemplazar piezas sin dolor. Si el dominio habla con una interfaz, puedes cambiar la implementación real después sin obligar al negocio a aprender sobre bases de datos, APIs o SDKs externos.
+
+Caso acoplado a una implementación concreta:
+
+`Portfolio` conoce directamente a `TokyoStockExchange`. Eso funciona, pero hace más difícil cambiar el origen de precios o probar la clase sin usar la implementación real.
+
+```ts
+class TokyoStockExchange {
+  currentPrice(symbol: string) {
+    return symbol.length * 100;
+  }
+}
+
+class Portfolio {
+  private exchange = new TokyoStockExchange();
+
+  total(symbol: string, shares: number) {
+    return this.exchange.currentPrice(symbol) * shares;
+  }
+}
+```
+
+Caso dependiente de una abstracción:
+
+Ahora `Portfolio` solo depende de `StockExchange`. La implementación concreta puede cambiar después, pero el código de alto nivel no tiene que modificarse por eso.
+
+```ts
+interface StockExchange {
+  currentPrice(symbol: string): number;
+}
+
+class Portfolio {
+  constructor(private exchange: StockExchange) {}
+
+  total(symbol: string, shares: number) {
+    return this.exchange.currentPrice(symbol) * shares;
+  }
+}
+```
+
+### Regla práctica
+SOLID sirve cuando el sistema cambia seguido, crece en complejidad o se vuelve difícil de probar. Si una solución simple ya se entiende bien, no agregues abstracciones extra solo por seguir la sigla.
+La decisión buena no es “aplicar SOLID siempre”, sino usarlo cuando reduce fricción real. Si el costo de una abstracción es mayor que el beneficio inmediato, conviene esperar y refactorizar cuando aparezca una necesidad concreta.
+</DocsPageLayout>

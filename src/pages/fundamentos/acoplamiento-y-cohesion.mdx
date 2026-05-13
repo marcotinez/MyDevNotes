@@ -1,0 +1,315 @@
+---
+navOrder: 4
+navLabel: "Acoplamiento y Cohesión"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Acoplamiento y Cohesión | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Acoplamiento y Cohesión"
+  pageDescription="Acoplamiento y cohesión son dos criterios clave para evaluar diseño. Aquí se ve qué significa cada uno, cómo detectarlos en código real y qué decisiones ayudan a mejorar mantenibilidad."
+  prevPage={{ href: "/fundamentos/refactoring", label: "Refactoring" }}
+  nextPage={{ href: "/fundamentos/abstracciones-y-niveles-de-abstraccion", label: "Abstracciones y Niveles de Abstracción" }}
+>
+---
+Acoplamiento y cohesión son dos ideas básicas para evaluar si el diseño de una pieza de software facilita o complica el cambio.
+
+No son conceptos decorativos ni teoría para entrevistas. Sirven para responder preguntas muy concretas:
+
+* si cambio esta regla, ¿cuántas piezas más se ven afectadas?
+* esta clase, ¿tiene una intención clara o mezcla tareas sin relación?
+* este módulo, ¿depende de demasiados detalles externos?
+* esta función, ¿hace una sola cosa o actúa como un punto de acumulación?
+
+Cuando el acoplamiento es demasiado alto o la cohesión demasiado baja, mantener el sistema cuesta más de lo necesario. Por eso este tema conecta de forma directa con `Clean Code`, `Code Smells`, `Refactoring` y después con `SOLID`.
+
+### Qué es acoplamiento
+El acoplamiento mide cuánto depende una pieza de otra.
+
+Si un módulo necesita conocer demasiados detalles internos de otro, está más acoplado. Eso no significa que toda dependencia sea mala. El software siempre tiene dependencias. El problema aparece cuando una pieza no solo depende de otra, sino también de su estructura, sus decisiones internas o sus detalles de infraestructura.
+
+En términos prácticos, un acoplamiento alto suele producir esto:
+
+* un cambio local genera efectos en cadena;
+* cuesta reemplazar una implementación;
+* testear una pieza exige montar demasiadas otras;
+* el código pierde flexibilidad porque depende de detalles concretos.
+
+### Qué es cohesión
+La cohesión mide qué tan relacionadas están entre sí las responsabilidades dentro de una misma pieza.
+
+Una clase, módulo o función con buena cohesión reúne cosas que realmente pertenecen juntas. Una pieza con cohesión baja mezcla tareas que podrían vivir separadas: formateo, persistencia, validación, integración, UI, reglas de negocio, todo bajo el mismo techo.
+
+En términos prácticos, baja cohesión suele verse así:
+
+* una clase tiene demasiados motivos para cambiar;
+* una función combina pasos de naturaleza distinta;
+* un módulo parece un “cajón de cosas útiles” sin una idea clara;
+* cuesta explicar en una frase qué hace una pieza.
+
+### La relación entre ambos
+Aunque son conceptos distintos, suelen moverse juntos.
+
+* Cuando una pieza tiene baja cohesión, muchas veces empieza a tocar demasiadas cosas y sube el acoplamiento.
+* Cuando una pieza está muy acoplada a otras, le cuesta mantener una responsabilidad limpia porque empieza a absorber detalles ajenos.
+
+La combinación más sana suele ser:
+
+* **cohesión alta:** cada pieza tiene una intención clara;
+* **acoplamiento razonable:** cada pieza depende lo mínimo necesario de otras.
+
+No se trata de “cero acoplamiento”. Eso no existe en sistemas reales. Se trata de que las dependencias estén justificadas y de que las responsabilidades no estén mezcladas sin necesidad.
+
+### 1. Ejemplo de alto acoplamiento
+El caso clásico es una clase de negocio que depende directamente de infraestructura concreta.
+
+Caso acoplado:
+
+```ts
+class ReportService {
+  generate() {
+    const connection = new MySqlConnection();
+    const rows = connection.query("SELECT * FROM sales");
+    const logger = new CloudLogger();
+
+    logger.info("sales loaded");
+
+    return rows.map((row) => row.total);
+  }
+}
+```
+
+Ese ejemplo parece cómodo porque todo está “a mano”, pero la clase queda atada a demasiados detalles:
+
+* sabe que usa MySQL;
+* sabe cómo abrir la conexión;
+* sabe que el logging se hace con `CloudLogger`;
+* mezcla acceso a datos, observabilidad y lógica de transformación.
+
+Si mañana cambias la base de datos, el logger o la forma de obtener ventas, `ReportService` se rompe aunque su responsabilidad principal debería ser otra.
+
+Caso menos acoplado:
+
+```ts
+interface SalesRepository {
+  findAll(): Sale[];
+}
+
+interface Logger {
+  info(message: string): void;
+}
+
+class ReportService {
+  constructor(
+    private salesRepository: SalesRepository,
+    private logger: Logger,
+  ) {}
+
+  generate() {
+    const sales = this.salesRepository.findAll();
+    this.logger.info("sales loaded");
+
+    return sales.map((sale) => sale.total);
+  }
+}
+```
+
+Aquí `ReportService` sigue dependiendo de otras piezas, pero depende de capacidades, no de implementaciones concretas. Esa diferencia importa mucho:
+
+* la clase se puede testear sin abrir una base real;
+* cambiar infraestructura no obliga a cambiar lógica de negocio;
+* el código expresa mejor qué necesita realmente para trabajar.
+
+La enseñanza de fondo no es “usa interfaces siempre”. La enseñanza es que una pieza de alto nivel no debería aprender detalles que no le corresponden.
+
+### 2. Ejemplo de baja cohesión
+Ahora veamos el problema inverso: una pieza que junta demasiadas responsabilidades dentro de sí misma.
+
+Caso con baja cohesión:
+
+```ts
+class UserManager {
+  validateEmail(email: string) {
+    return email.includes("@");
+  }
+
+  hashPassword(password: string) {
+    return password + "_hashed";
+  }
+
+  saveAvatar(file: File) {
+    storage.upload(file);
+  }
+
+  sendWelcomeEmail(email: string) {
+    mailer.send(email, "Welcome");
+  }
+}
+```
+
+`UserManager` aquí no tiene una responsabilidad clara. Valida emails, transforma passwords, guarda archivos y además envía correos. El nombre genérico tapa el verdadero problema: la clase se convirtió en un punto de acumulación.
+
+Ese tipo de diseño complica todo:
+
+* si cambia la validación, tocas la misma clase que toca almacenamiento;
+* si cambia el envío de correo, revisas una clase que también sabe de contraseñas;
+* testear una parte obliga a convivir con varias responsabilidades que no tienen relación directa.
+
+Caso con mejor cohesión:
+
+```ts
+class EmailValidator {
+  isValid(email: string) {
+    return email.includes("@");
+  }
+}
+
+class PasswordHasher {
+  hash(password: string) {
+    return password + "_hashed";
+  }
+}
+
+class AvatarStorage {
+  save(file: File) {
+    storage.upload(file);
+  }
+}
+
+class WelcomeMailer {
+  send(email: string) {
+    mailer.send(email, "Welcome");
+  }
+}
+```
+
+Aquí cada pieza tiene una intención concreta. No es una mejora porque “ahora hay más clases”, sino porque cada una es más fácil de entender, testear y cambiar sin arrastrar decisiones ajenas.
+
+### 3. Cómo detectar acoplamiento alto
+No siempre aparece con una alarma obvia, pero hay señales bastante claras:
+
+* una pieza instancia directamente muchas clases concretas;
+* una función navega cadenas largas como `order.customer.address.city.name`;
+* una clase necesita demasiadas dependencias para construirse;
+* cambiar una implementación técnica obliga a tocar código de negocio;
+* testear una función exige mocks de demasiados colaboradores.
+
+Ejemplo de navegación excesiva:
+
+```ts
+const city = order.customer.address.city.name;
+```
+
+Eso sugiere que el consumidor sabe demasiado sobre la estructura interna de `order`. Si cambia la forma de modelar dirección o ciudad, el impacto se propaga.
+
+Una alternativa con menos acoplamiento sería:
+
+```ts
+class Order {
+  customerCity() {
+    return this.customer.address.city.name;
+  }
+}
+
+const city = order.customerCity();
+```
+
+La mejora está en encapsular conocimiento. El código cliente deja de depender de la anatomía interna del objeto y pasa a depender de una operación clara.
+
+### 4. Cómo detectar cohesión baja
+La baja cohesión también deja huellas bastante visibles:
+
+* cuesta nombrar la clase o función sin caer en algo genérico;
+* una pieza participa en cambios de muchos tipos distintos;
+* una función alterna entre reglas, I/O, formateo y orquestación;
+* un módulo contiene utilidades que no comparten un propósito real;
+* al leerlo, no se siente como una unidad natural.
+
+Un ejemplo típico es una función que hace todo:
+
+```ts
+function registerUser(input: RegisterUserInput) {
+  if (!input.email.includes("@")) {
+    throw new Error("Invalid email");
+  }
+
+  const user = {
+    email: input.email.toLowerCase(),
+    name: input.name.trim(),
+  };
+
+  database.users.insert(user);
+  analytics.track("user_registered", { email: user.email });
+  sendWelcomeEmail(user.email);
+}
+```
+
+Aquí hay validación, transformación, persistencia, analítica y notificación en un solo bloque. Aunque la función “funcione”, la cohesión es pobre porque está resolviendo demasiadas cosas de distinta naturaleza.
+
+Una versión con mejor cohesión podría separar esos pasos:
+
+```ts
+function validateEmail(email: string) {
+  if (!email.includes("@")) {
+    throw new Error("Invalid email");
+  }
+}
+
+function normalizeUser(input: RegisterUserInput) {
+  return {
+    email: input.email.toLowerCase(),
+    name: input.name.trim(),
+  };
+}
+
+function registerUser(input: RegisterUserInput) {
+  validateEmail(input.email);
+  const user = normalizeUser(input);
+
+  database.users.insert(user);
+  analytics.track("user_registered", { email: user.email });
+  sendWelcomeEmail(user.email);
+}
+```
+
+Sigue habiendo una orquestación general, pero ya no todas las decisiones están mezcladas al mismo nivel. Eso hace que la función principal tenga una intención más legible.
+
+### 5. Qué relación tiene con SOLID
+Acoplamiento y cohesión ayudan a entender por qué SOLID existe.
+
+* `S` busca mejor cohesión: una pieza, un motivo de cambio.
+* `O` intenta que extender comportamiento no obligue a tocar demasiadas piezas acopladas.
+* `I` reduce dependencias innecesarias sobre interfaces demasiado grandes.
+* `D` baja el acoplamiento a implementaciones concretas.
+
+Si SOLID se estudia solo como una sigla, puede parecer arbitrario. Si lo miras desde acoplamiento y cohesión, se vuelve mucho más práctico: los principios existen para bajar fricción estructural.
+
+### 6. Qué refactors suelen ayudar
+Cuando el problema principal es de acoplamiento o cohesión, algunos refactors aparecen una y otra vez:
+
+* `Extract Method`: cuando una función mezcla pasos distintos.
+* `Extract Class`: cuando una clase acumula demasiadas responsabilidades.
+* `Move Method`: cuando un comportamiento vive en el objeto equivocado.
+* `Hide Delegate`: cuando el código cliente conoce demasiados detalles internos.
+* `Introduce Parameter Object`: cuando demasiados datos viajan juntos sin una forma clara.
+* `Dependency Inversion`: cuando el código de alto nivel depende de infraestructura concreta.
+
+No hace falta pensar primero en el nombre del refactor. Primero conviene identificar la fricción:
+
+* ¿la pieza toca demasiado afuera? piensa en acoplamiento;
+* ¿la pieza mezcla demasiadas cosas adentro? piensa en cohesión.
+
+### Cuándo no llevarlo al extremo
+También aquí hay trade-offs.
+
+Buscar cohesión perfecta o acoplamiento mínimo puede llevar a sobre-diseñar. Si una pieza muy simple funciona bien y todavía no existe presión de cambio, meter capas o abstracciones por anticipación puede empeorar la claridad.
+
+La meta no es producir diagramas bonitos. La meta es que el código cambie con menos dolor. Si una abstracción reduce fricción real, aporta valor. Si solo agrega ceremonia, probablemente todavía no hacía falta.
+
+### Regla práctica
+Si una pieza depende de demasiados detalles externos, revisa acoplamiento. Si una pieza hace demasiadas cosas sin una intención clara, revisa cohesión.
+
+En diseño de software, gran parte de la mantenibilidad sale de sostener ese equilibrio: dependencias razonables hacia afuera y responsabilidades claras hacia adentro.
+</DocsPageLayout>

@@ -1,0 +1,389 @@
+---
+navOrder: 3
+navLabel: "Refactoring"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Refactoring | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Refactoring"
+  pageDescription="Refactoring es mejorar la estructura interna del código sin cambiar su comportamiento observable. Aquí se ve cuándo conviene hacerlo, cómo abordarlo y qué refactors básicos aparecen con más frecuencia."
+  prevPage={{ href: "/fundamentos/codesmells", label: "Code Smells" }}
+  nextPage={{ href: "/fundamentos/acoplamiento-y-cohesion", label: "Acoplamiento y Cohesión" }}
+>
+---
+Refactoring es el proceso de mejorar la estructura interna del código sin cambiar su comportamiento observable. No agrega features nuevas y no debería alterar el resultado esperado del sistema. Lo que cambia es la forma del código: su organización, su claridad y la facilidad con la que se puede mantener.
+
+Es la respuesta natural cuando detectas fricción: una función cuesta leerla, un cambio pequeño obliga a tocar demasiados lugares o una clase mezcla responsabilidades que ya no deberían vivir juntas. En ese punto, el refactor no es maquillaje. Es una forma de bajar complejidad accidental antes de que siga creciendo.
+
+### Qué problema resuelve
+Sin refactoring, una base de código tiende a degradarse. Cada cambio deja un poco de deuda: una condición extra, un nombre ambiguo, una duplicación “temporal”, una dependencia concreta que nadie tuvo tiempo de abstraer.
+
+Al principio parece manejable. Después empiezan a aparecer síntomas:
+
+* el código tarda más en entenderse;
+* cambian varias piezas por una sola regla;
+* el testing se vuelve más costoso;
+* el riesgo de regresiones sube;
+* el equipo evita tocar partes que ya generan miedo.
+
+El refactoring sirve para cortar esa deriva. No reemplaza al diseño inicial, pero sí evita que una buena intención termine convertida en una estructura difícil de evolucionar.
+
+### Qué no es refactoring
+Conviene separar este concepto de otros cambios comunes:
+
+* **No es agregar una feature nueva:** si cambias comportamiento de negocio, ya no estás solo refactorizando.
+* **No es optimización prematura:** mejorar performance puede requerir refactors, pero no son lo mismo.
+* **No es reescribir por frustración:** reescribir desde cero suele ser más riesgoso y borra contexto que todavía sirve.
+* **No es “limpiar por gusto”:** el objetivo no es que el código quede “bonito”, sino que sea más fácil de cambiar sin romperlo.
+
+### Cuándo conviene refactorizar
+No hace falta esperar una “gran fase de refactor”. De hecho, suele funcionar mejor en momentos pequeños y frecuentes:
+
+* justo antes de agregar una regla nueva en una zona incómoda;
+* inmediatamente después de entender mejor una pieza;
+* cuando detectas duplicación real;
+* cuando una función o clase ya no tiene una intención clara;
+* cuando escribir un test exige demasiada preparación por culpa del diseño.
+
+La mejor señal práctica es esta: si un cambio simple exige más esfuerzo mental del que debería, probablemente hay una mejora estructural pendiente.
+
+### Cómo refactorizar sin romper cosas
+El principio base es moverse en pasos pequeños. Un refactor grande y opaco suele ser difícil de revisar y más fácil de romper.
+
+Una secuencia razonable es:
+
+1. entender qué comportamiento debe mantenerse;
+2. cubrirlo con tests si la zona es delicada;
+3. aplicar un cambio estructural pequeño;
+4. verificar que el comportamiento siga igual;
+5. repetir.
+
+Eso suena lento, pero en la práctica es más seguro que intentar una limpieza masiva de una sola vez.
+
+### Relación con Code Smells y Clean Code
+Los *code smells* te dicen dónde mirar. El refactoring te dice qué hacer después.
+
+* Si ves una función demasiado larga, el smell te marca la fricción.
+* Si aplicas `Extract Method`, el refactor cambia la estructura.
+* Si el resultado queda más claro, el principio de *Clean Code* se vuelve visible en el código real.
+
+Dicho de otra forma: los smells son síntomas, *Clean Code* aporta criterio de legibilidad y el refactoring es el mecanismo práctico para mover el código hacia una forma mejor.
+
+### Refactors comunes
+No hace falta memorizar un catálogo completo, pero sí conviene dominar unos pocos movimientos que aparecen todo el tiempo.
+
+### 1. Extract Method
+Se usa cuando una función hace demasiado o cuando dentro de una función hay un bloque con intención propia.
+
+El problema no es solo la longitud. El problema real es que varias decisiones distintas quedan pegadas en una sola unidad. Cuando eso pasa, la función obliga a leer detalle operativo para entender una idea simple.
+
+Caso mezclado:
+
+```ts
+function createInvoice(order: Order) {
+  const subtotal = order.items.reduce((sum, item) => sum + item.price, 0);
+  const tax = subtotal * 0.19;
+  const total = subtotal + tax;
+
+  return {
+    subtotal,
+    tax,
+    total,
+  };
+}
+```
+
+En esa versión, `createInvoice` calcula subtotal, impuesto y total final sin separar conceptualmente cada paso. El cálculo es corto, sí, pero ya contiene varias reglas que en el tiempo pueden cambiar por separado. Si mañana cambia el impuesto o aparece un descuento antes del total, la función empieza a crecer en una sola dirección: más responsabilidades dentro del mismo bloque.
+
+Caso extraído:
+
+```ts
+function calculateSubtotal(order: Order) {
+  return order.items.reduce((sum, item) => sum + item.price, 0);
+}
+
+function calculateTax(subtotal: number) {
+  return subtotal * 0.19;
+}
+
+function createInvoice(order: Order) {
+  const subtotal = calculateSubtotal(order);
+  const tax = calculateTax(subtotal);
+
+  return {
+    subtotal,
+    tax,
+    total: subtotal + tax,
+  };
+}
+```
+
+La mejora no está solo en partir líneas. Está en hacer visibles dos decisiones que antes estaban embebidas: cómo se calcula el subtotal y cómo se calcula el impuesto. Eso mejora lectura, testing y reutilización.
+
+También mejora el tipo de discusión que puedes tener en revisión. En vez de hablar sobre “esa línea del reduce”, pasas a discutir si `calculateSubtotal` o `calculateTax` representan correctamente la regla de negocio. El código queda más fácil de leer porque cada paso tiene nombre.
+
+Cuándo ayuda:
+
+* cuando una función mezcla varios pasos;
+* cuando un bloque necesita un nombre que explique intención;
+* cuando una parte merece testearse o reutilizarse por separado.
+
+### 2. Rename Method o Rename Variable
+Se usa cuando el comportamiento está relativamente bien, pero el nombre no revela intención.
+
+Es uno de los refactors más baratos y con mejor retorno. Muchas veces el problema no es la lógica, sino que el lector tiene que inferir demasiado a partir de nombres vagos.
+
+Caso ambiguo:
+
+```ts
+function process(user: User) {
+  return `${user.firstName} ${user.lastName}`.trim();
+}
+```
+
+`process` no informa nada útil. Puede significar validar, transformar, guardar, enviar o calcular. El nombre obliga a abrir el cuerpo y deducir intención desde la implementación.
+
+Caso claro:
+
+```ts
+function formatUserFullName(user: User) {
+  return `${user.firstName} ${user.lastName}`.trim();
+}
+```
+
+Este refactor parece menor, pero reduce carga cognitiva. Muchas veces no hace falta cambiar la lógica: basta con nombrar mejor lo que ya existe.
+
+Eso es importante porque mejora la lectura sin reestructurar comportamiento. El lector llega a la función y ya sabe qué esperar antes de mirar una sola línea interna. Cuando un nombre es preciso, el código completo se vuelve más navegable.
+
+Cuándo ayuda:
+
+* cuando el lector tiene que abrir la implementación para entender propósito;
+* cuando un nombre es demasiado genérico;
+* cuando una función hace una cosa válida, pero su nombre promete otra.
+
+### 3. Introduce Parameter Object
+Se usa cuando varios parámetros viajan juntos con frecuencia o cuando una firma ya exige demasiado contexto.
+
+Aquí el problema suele aparecer de dos formas: la llamada se vuelve difícil de leer y la función empieza a recibir datos que conceptualmente pertenecen a una misma unidad, pero el código todavía no lo reconoce.
+
+Caso con demasiados parámetros:
+
+```ts
+function scheduleMeeting(
+  title: string,
+  startDate: Date,
+  endDate: Date,
+  roomId: string,
+  ownerId: string,
+  notifyAttendees: boolean,
+) {
+  // ...
+}
+```
+
+Leyendo esa firma, cuesta distinguir qué cosas forman parte del intervalo de tiempo, cuáles identifican contexto y cuáles representan configuración. La función recibe demasiado de golpe y eso vuelve más frágil tanto la llamada como su evolución.
+
+Caso con objeto explícito:
+
+```ts
+type MeetingInput = {
+  title: string;
+  startDate: Date;
+  endDate: Date;
+  roomId: string;
+  ownerId: string;
+  notifyAttendees: boolean;
+};
+
+function scheduleMeeting(input: MeetingInput) {
+  // ...
+}
+```
+
+La ganancia principal es semántica. Ya no estás pasando una secuencia frágil de argumentos, sino una unidad con estructura y significado. Si después aparece otra opción relacionada, el código escala mejor.
+
+También baja el riesgo de errores por orden de argumentos. En una llamada larga, `roomId` y `ownerId` pueden invertirse sin que el ojo lo detecte fácil. Con un objeto nombrado, la intención de cada dato queda expuesta.
+
+### 4. Extract Class
+Se usa cuando una clase concentra responsabilidades que ya no deberían convivir.
+
+Este refactor importa cuando una clase deja de ser una unidad coherente y se convierte en un contenedor de tareas distintas. El olor fuerte aparece cuando diferentes cambios del sistema impactan la misma clase por motivos completamente diferentes.
+
+Caso sobrecargado:
+
+```ts
+class UserProfile {
+  formatDisplayName(user: User) {
+    return `${user.firstName} ${user.lastName}`;
+  }
+
+  saveAvatar(file: File) {
+    storage.upload(file);
+  }
+
+  sendWelcomeMessage(user: User) {
+    notifications.send(user.id, "Welcome");
+  }
+}
+```
+
+`UserProfile` formatea nombres, guarda archivos y envía mensajes. Son tres responsabilidades con ritmos de cambio distintos. El formato puede cambiar por UX, el almacenamiento por infraestructura y la notificación por negocio. Tenerlas juntas hace que cualquier modificación te obligue a revisar una clase demasiado amplia.
+
+Caso separado:
+
+```ts
+class UserNameFormatter {
+  format(user: User) {
+    return `${user.firstName} ${user.lastName}`;
+  }
+}
+
+class AvatarStorage {
+  save(file: File) {
+    storage.upload(file);
+  }
+}
+
+class WelcomeNotifier {
+  send(user: User) {
+    notifications.send(user.id, "Welcome");
+  }
+}
+```
+
+Aquí la mejora no es la cantidad de clases. La mejora es que formato, almacenamiento y notificación ya no se pisan dentro del mismo objeto. Cada cambio queda encapsulado en la pieza que realmente le corresponde.
+
+Eso reduce el radio de impacto. Si cambia la política de almacenamiento de avatares, no necesitas abrir una clase que también sabe de nombres y de mensajes de bienvenida. El diseño deja de agrupar por conveniencia accidental y empieza a agrupar por responsabilidad real.
+
+### 5. Move Method
+Se usa cuando un método vive en una clase, pero usa más datos de otra y conceptualmente pertenece a ese otro lugar.
+
+La señal típica es que el método parece “visitar” otro objeto más de lo que usa su propio contexto. En ese punto, la clase donde vive el método muchas veces solo está actuando como intermediaria innecesaria.
+
+Caso mal ubicado:
+
+```ts
+class OrderService {
+  customerCity(order: Order) {
+    return order.customer.address.city;
+  }
+}
+```
+
+`OrderService` no agrega casi nada. Solo accede a la estructura interna de `Order` para sacar un dato que realmente pertenece al propio pedido. Ese diseño hace que quien usa el servicio dependa de una capa extra sin ganar abstracción útil.
+
+Caso mejor ubicado:
+
+```ts
+class Order {
+  customerCity() {
+    return this.customer.address.city;
+  }
+}
+```
+
+Si una operación depende sobre todo del estado interno de `Order`, mantenerla en `OrderService` solo agrega acoplamiento y obliga a otros objetos a conocer demasiado detalle.
+
+Mover el método al objeto correcto mejora encapsulamiento. La estructura interna deja de propagarse y el consumidor pasa a depender de una capacidad clara del dominio: `customerCity()`.
+
+### 6. Decompose Conditional
+Se usa cuando una condición larga o anidada ya no comunica la regla de negocio con claridad.
+
+Las condiciones complejas suelen ser difíciles no porque la lógica sea imposible, sino porque el código la presenta como una cadena booleana sin nombres intermedios. Eso obliga al lector a interpretar operadores en vez de entender reglas.
+
+Caso difícil de leer:
+
+```ts
+function canPublish(post: Post, user: User) {
+  if (user.role === "admin" || (post.isDraft && post.authorId === user.id && !post.isArchived)) {
+    return true;
+  }
+
+  return false;
+}
+```
+
+La expresión funciona, pero exige demasiada lectura de bajo nivel. Tienes que verificar rol, estado del post, autoría y archivo en una sola condición. El resultado es correcto, pero la regla está comprimida de una manera poco amable para quien la mantiene.
+
+Caso con intención visible:
+
+```ts
+function isPostOwner(user: User, post: Post) {
+  return post.authorId === user.id;
+}
+
+function canOwnerPublishDraft(user: User, post: Post) {
+  return post.isDraft && isPostOwner(user, post) && !post.isArchived;
+}
+
+function canPublish(post: Post, user: User) {
+  return user.role === "admin" || canOwnerPublishDraft(user, post);
+}
+```
+
+Aquí el beneficio es que la regla deja de leerse como lógica booleana cruda y pasa a leerse como decisiones con nombre.
+
+Eso hace que la conversación cambie. Ya no preguntas “qué hace ese `&& !post.isArchived`”, sino “qué significa `canOwnerPublishDraft`”. El refactor transforma operadores en conceptos.
+
+### 7. Inline Method
+No todo refactor agrega abstracción. A veces una función pequeña dejó de aportar valor y solo esconde una operación trivial.
+
+Esto importa porque también existe el sobre-refactor. Si cada línea mínima se convierte en una función separada, el código gana capas, pero pierde fluidez.
+
+Caso innecesariamente indirecto:
+
+```ts
+function isActive(user: User) {
+  return user.status === "active";
+}
+
+function canLogin(user: User) {
+  return isActive(user);
+}
+```
+
+Aquí `isActive` no está mal por sí misma, pero en este contexto no aporta intención adicional ni reutilización real. `canLogin` solo rebota en otra función para terminar diciendo exactamente lo mismo.
+
+Caso simplificado:
+
+```ts
+function canLogin(user: User) {
+  return user.status === "active";
+}
+```
+
+Si la función extraída no agrega intención, reutilización ni aislamiento útil, mantenerla separada puede empeorar la lectura en vez de mejorarla.
+
+La lección importante es que refactorizar no siempre significa extraer. A veces el mejor cambio es eliminar una abstracción que dejó de justificar su existencia.
+
+### Cómo elegir el refactor correcto
+No hay una receta universal, pero estas asociaciones suelen funcionar bien:
+
+* función demasiado larga -> `Extract Method`
+* nombre confuso -> `Rename Method` o `Rename Variable`
+* clase con demasiadas responsabilidades -> `Extract Class`
+* demasiados parámetros -> `Introduce Parameter Object`
+* lógica condicional difícil de seguir -> `Decompose Conditional`
+* comportamiento ubicado en el objeto equivocado -> `Move Method`
+* abstracción pequeña que ya no aporta -> `Inline Method`
+
+Lo importante no es acertar el nombre formal del refactor, sino resolver la fricción con el cambio más pequeño y claro posible.
+
+### Cuándo no refactorizar todavía
+También hay momentos en que conviene esperar:
+
+* si aún no entiendes bien la regla de negocio;
+* si no puedes verificar que el comportamiento se mantenga;
+* si el cambio es urgente y la limpieza no reduce riesgo real;
+* si estás agregando abstracciones “por si acaso” sin presión concreta del problema.
+
+Refactorizar sin contexto suficiente puede producir una estructura más elegante en apariencia, pero menos útil en la práctica.
+
+### Regla práctica
+Si cada cambio cuesta más de lo que debería, el refactoring probablemente ya dejó de ser opcional.
+
+La idea no es perseguir perfección. La idea es mantener el código en una forma donde seguir trabajando sea razonablemente fácil. Cuando una pieza empieza a oler mal, el refactor correcto suele ser el paso que evita que ese problema crezca.
+</DocsPageLayout>

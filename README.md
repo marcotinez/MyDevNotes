@@ -4,6 +4,13 @@ Wiki publica y cuaderno tecnico personal sobre informatica e ingenieria de softw
 
 MyDevNotes reune ideas, conceptos y decisiones tecnicas que sirven como referencia para estudiar, revisar fundamentos y apoyar proyectos actuales y futuros. No busca ser una enciclopedia completa; busca ser util, clara y facil de mantener.
 
+Como es una wiki personal y publica, el contenido no necesariamente tiene un unico origen. Puede incluir:
+
+- notas escritas directamente por mi
+- contenido generado o asistido por IA
+- resúmenes y compilaciones de ideas que me interesaron de otros lados
+- material reorganizado para dejarlo mas claro, mas corto o mejor conectado con el resto de la wiki
+
 ## Que encontraras
 
 - Una seccion de inicio con la introduccion de la wiki, su mapa general y el stack que la sostiene.

@@ -1,0 +1,42 @@
+---
+navOrder: 0
+navLabel: "Introducción"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Introducción a Fundamentos | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Introducción"
+  pageDescription="Base conceptual para leer mejor código, detectar fricción, refactorizar con criterio y entender decisiones de diseño antes de entrar a temas más específicos."
+  nextPage={{ href: "/fundamentos/cleancode", label: "Clean Code" }}
+>
+---
+`Fundamentos` es la base de la wiki. Aquí están los conceptos que más ayudan a formar criterio antes de entrar a arquitectura, backend, frontend o cualquier otro dominio más específico.
+
+La idea no es memorizar definiciones sueltas. La idea es construir una forma más ordenada de leer código, detectar problemas de diseño y entender por qué ciertas decisiones mejoran o empeoran la mantenibilidad.
+
+## Qué cubre esta sección
+
+En este dominio se agrupan temas como:
+
+- legibilidad y claridad en el código;
+- síntomas de diseño que conviene detectar temprano;
+- refactors frecuentes para bajar fricción;
+- relación entre responsabilidades, dependencias y estructura;
+- uso razonable de abstracciones;
+- principios de diseño que ayudan a que el software cambie con menos dolor.
+
+## Por dónde conviene empezar
+
+Si vienes entrando a la wiki o quieres repasar desde la base, una buena entrada es [Clean Code](/fundamentos/cleancode). Desde ahí puedes seguir avanzando por la secuencia natural del dominio usando la navegación entre páginas o la sidebar.
+
+No hace falta que esta portada enumere todos los temas del dominio. La idea es que funcione como punto de entrada, y que el detalle vivo de páginas disponibles quede reflejado en la navegación real del sitio.
+
+El recorrido general de `Fundamentos` va desde problemas visibles en el código hasta criterios de diseño más estructurales: primero legibilidad y smells, después refactoring y estructura, y finalmente principios de diseño más amplios.
+
+## Regla práctica
+
+Si un tema más avanzado empieza a sentirse confuso, normalmente conviene volver a `Fundamentos`. La mayoría de los problemas grandes de arquitectura o diseño primero se manifiestan como problemas pequeños de claridad, responsabilidades o estructura.
+</DocsPageLayout>

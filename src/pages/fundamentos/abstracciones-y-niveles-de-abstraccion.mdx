@@ -1,0 +1,294 @@
+---
+navOrder: 5
+navLabel: "Abstracciones y Niveles de Abstracción"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Abstracciones y Niveles de Abstracción | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Abstracciones y Niveles de Abstracción"
+  pageDescription="Las abstracciones sirven para ocultar detalle innecesario y los niveles de abstracción ayudan a que cada pieza del código comunique una sola idea. Aquí se ve cómo reconocer cuándo una abstracción aporta valor y cuándo solo agrega ruido."
+  prevPage={{ href: "/fundamentos/acoplamiento-y-cohesion", label: "Acoplamiento y Cohesión" }}
+  nextPage={{ href: "/fundamentos/principios-solid", label: "Principios SOLID" }}
+>
+---
+Las abstracciones existen para que el código exprese ideas útiles sin obligarte a pensar en todos los detalles al mismo tiempo. Son una herramienta para reducir carga cognitiva, no una excusa para meter capas arbitrarias.
+
+Cuando están bien usadas, te permiten razonar en términos de intención:
+
+* “guardar un usuario” en vez de pensar en SQL línea por línea;
+* “calcular el total” en vez de mirar cada detalle del algoritmo cada vez;
+* “publicar un post” en vez de repetir validación, persistencia y notificaciones mezcladas.
+
+Los niveles de abstracción aparecen cuando decides cuánto detalle debería vivir junto dentro de una función, clase o módulo. Si mezclas en el mismo bloque reglas de alto nivel con pasos operativos muy concretos, la lectura se vuelve torpe. El código obliga a saltar mentalmente entre intención y mecánica.
+
+### Qué es una abstracción
+Una abstracción es una forma de representar una capacidad o una idea sin exponer todos sus detalles internos.
+
+No significa esconder complejidad porque sí. Significa mostrar solo lo necesario para usar una pieza correctamente.
+
+Por ejemplo, esta llamada está en un nivel relativamente alto:
+
+```ts
+invoiceRepository.save(invoice);
+```
+
+Quien la lee entiende la intención. No necesita saber en ese punto si por debajo hay SQL, un ORM, una API remota o un archivo temporal. El detalle puede importar, pero no necesariamente en ese lugar del flujo.
+
+Una abstracción buena:
+
+* tiene un nombre que revela intención;
+* oculta detalle que no hace falta para el consumidor;
+* expone una capacidad clara;
+* reduce ruido en vez de sumar indirección inútil.
+
+### Qué es un nivel de abstracción
+El nivel de abstracción indica cuán cerca está una pieza del “qué” o del “cómo”.
+
+* Un nivel alto habla de intención o de reglas: `publishPost`, `calculateInvoiceTotal`, `sendWelcomeEmail`.
+* Un nivel bajo habla de detalle operativo: manipular strings, recorrer arrays, abrir conexiones, construir payloads, aplicar condiciones precisas.
+
+El problema aparece cuando una función mezcla ambos niveles sin orden.
+
+Caso mezclado:
+
+```ts
+function publishPost(input: PostInput) {
+  if (!input.title) {
+    throw new Error("Title is required");
+  }
+
+  const slug = input.title.toLowerCase().replaceAll(" ", "-");
+
+  database.posts.insert({
+    title: input.title.trim(),
+    body: input.body.trim(),
+    slug,
+  });
+
+  sendNotification(slug);
+}
+```
+
+Esa función habla a la vez de intención de negocio (`publishPost`) y de detalle mecánico (`toLowerCase`, `replaceAll`, `trim`, estructura exacta del insert). No está “mal” porque falle. Está mal ubicada desde la lectura: para entender una operación de alto nivel tienes que atravesar demasiados detalles de bajo nivel.
+
+Caso con niveles mejor separados:
+
+```ts
+function validatePostInput(input: PostInput) {
+  if (!input.title) {
+    throw new Error("Title is required");
+  }
+}
+
+function buildSlug(title: string) {
+  return title.toLowerCase().replaceAll(" ", "-");
+}
+
+function toPostRecord(input: PostInput) {
+  return {
+    title: input.title.trim(),
+    body: input.body.trim(),
+    slug: buildSlug(input.title),
+  };
+}
+
+function publishPost(input: PostInput) {
+  validatePostInput(input);
+  const post = toPostRecord(input);
+
+  database.posts.insert(post);
+  sendNotification(post.slug);
+}
+```
+
+Ahora `publishPost` vuelve a sonar como una orquestación de alto nivel. Los detalles siguen existiendo, pero ya no contaminan la idea principal. Puedes leer la función rápida para entender el flujo, y solo bajar a otras funciones si necesitas mirar la implementación concreta.
+
+### Por qué importa mantener un solo nivel por función
+Cuando una función mezcla distintos niveles, el lector pierde ritmo. Tiene que subir y bajar de contexto todo el tiempo.
+
+Eso genera varios problemas:
+
+* cuesta escanear la intención principal;
+* es más difícil detectar responsabilidades mezcladas;
+* la función se vuelve más difícil de modificar sin romper algo;
+* los cambios de detalle terminan ensuciando flujos de alto nivel.
+
+No significa que cada función deba ser mínima o que todo deba extraerse. Significa que dentro de una misma unidad conviene que las líneas “jueguen en la misma liga” de abstracción.
+
+### 1. Función con mezcla de niveles
+Este es uno de los smells más comunes.
+
+Caso con mezcla:
+
+```ts
+function registerUser(input: RegisterUserInput) {
+  if (!input.email.includes("@")) {
+    throw new Error("Invalid email");
+  }
+
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const normalizedName = input.name.trim();
+
+  database.users.insert({
+    email: normalizedEmail,
+    name: normalizedName,
+  });
+
+  analytics.track("user_registered", { email: normalizedEmail });
+}
+```
+
+Aquí se mezclan al menos cuatro capas de decisión:
+
+* validación;
+* normalización;
+* persistencia;
+* integración con analítica.
+
+Eso obliga a leer demasiado detalle junto para entender algo que, conceptualmente, solo quiere “registrar un usuario”.
+
+Caso con niveles más claros:
+
+```ts
+function validateEmail(email: string) {
+  if (!email.includes("@")) {
+    throw new Error("Invalid email");
+  }
+}
+
+function normalizeUser(input: RegisterUserInput) {
+  return {
+    email: input.email.trim().toLowerCase(),
+    name: input.name.trim(),
+  };
+}
+
+function registerUser(input: RegisterUserInput) {
+  validateEmail(input.email);
+  const user = normalizeUser(input);
+
+  database.users.insert(user);
+  analytics.track("user_registered", { email: user.email });
+}
+```
+
+La segunda versión sigue haciendo lo mismo, pero organiza el código para que el flujo principal se lea como flujo principal. Esa es la ganancia más importante de separar niveles: hacer que el lector vea antes la intención y después, solo si hace falta, el detalle.
+
+### 2. Abstracción útil vs abstracción vacía
+No toda abstracción mejora el diseño. Algunas solo agregan un salto extra sin aportar claridad.
+
+Caso con abstracción vacía:
+
+```ts
+function getActiveStatus(user: User) {
+  return user.isActive;
+}
+
+function canLogin(user: User) {
+  return getActiveStatus(user);
+}
+```
+
+Aquí `getActiveStatus` no encapsula una regla, no simplifica una operación compleja y no comunica nada nuevo. Solo agrega una capa intermedia.
+
+Caso directo:
+
+```ts
+function canLogin(user: User) {
+  return user.isActive;
+}
+```
+
+Una abstracción útil no es la que existe, sino la que realmente reduce ruido o expresa una idea mejor que el detalle original.
+
+Una buena pregunta práctica es esta: si elimino esta función o clase intermedia, ¿el código queda más claro o más confuso? Si queda más claro, esa abstracción probablemente no estaba aportando valor.
+
+### 3. Nombres que corresponden al nivel real
+A veces el problema no es solo de estructura, sino de nombre. Una función puede prometer un nivel alto, pero en realidad hacer algo muy específico de bajo nivel.
+
+Caso engañoso:
+
+```ts
+function processPayment(input: PaymentInput) {
+  return input.cardNumber.replaceAll(" ", "");
+}
+```
+
+`processPayment` suena a una operación completa de negocio: validar, autorizar, cobrar, registrar. Pero la implementación solo limpia un string. Hay una distancia enorme entre el nombre y el nivel real de la lógica.
+
+Caso honesto:
+
+```ts
+function normalizeCardNumber(cardNumber: string) {
+  return cardNumber.replaceAll(" ", "");
+}
+```
+
+Ese cambio parece chico, pero corrige algo importante: la abstracción vuelve a representar lo que realmente hace la pieza. Cuando nombre y nivel coinciden, el código deja de prometer más de la cuenta.
+
+### 4. Módulos que exponen detalle innecesario
+El problema también aparece entre módulos. Un consumidor no debería tener que saber demasiado sobre el paso a paso interno de otra pieza.
+
+Caso con demasiado detalle expuesto:
+
+```ts
+const connection = database.createConnection();
+const statement = connection.createStatement();
+const rows = statement.execute("SELECT * FROM invoices");
+const invoices = rows.map(toInvoice);
+```
+
+Ese código obliga al consumidor a participar en demasiados pasos internos. En la práctica, el módulo de base de datos no está ofreciendo una capacidad clara, sino un conjunto de mecanismos sueltos.
+
+Caso con abstracción más útil:
+
+```ts
+const invoices = invoiceRepository.findAll();
+```
+
+La segunda versión no niega que exista conexión, statement o mapeo. Solo los mueve fuera del punto donde no aportan nada. La abstracción protege al consumidor de detalles que no necesita para cumplir su tarea.
+
+### 5. Cómo se conecta con cohesión y acoplamiento
+Este tema está muy ligado a los anteriores.
+
+* Si mezclas muchos niveles dentro de una pieza, normalmente también baja la cohesión.
+* Si una abstracción expone demasiado detalle interno, sube el acoplamiento.
+
+Por eso muchas mejoras estructurales apuntan a ambas cosas al mismo tiempo:
+
+* separar funciones por intención mejora cohesión;
+* ocultar mecanismos detrás de capacidades claras reduce acoplamiento;
+* elegir nombres acordes al nivel mejora legibilidad;
+* mover detalle fuera del flujo principal mejora mantenibilidad.
+
+### 6. Qué refactors suelen ayudar
+Cuando el problema principal es de abstracción o de niveles mal mezclados, suelen ayudar estos refactors:
+
+* `Extract Method`: para separar bloques de bajo nivel dentro de una operación de alto nivel.
+* `Inline Method`: cuando una abstracción pequeña no aporta valor real.
+* `Rename Method` o `Rename Variable`: para hacer coincidir el nombre con el nivel real.
+* `Move Method`: cuando el detalle está en el objeto equivocado.
+* `Extract Class`: cuando una pieza mezcla demasiadas responsabilidades y, con ellas, demasiados niveles.
+* `Hide Delegate`: cuando una pieza cliente conoce demasiada anatomía interna de otra.
+
+No hace falta memorizar la lista. Lo importante es detectar la fricción:
+
+* si para entender intención tienes que atravesar demasiado detalle, el nivel está mal mezclado;
+* si una capa existe pero no dice nada útil, la abstracción sobra;
+* si un nombre promete negocio y solo hace manipulación mecánica, el nivel está mal nombrado.
+
+### Cuándo no abstraer más
+También aquí existe el exceso.
+
+Si cada línea mínima se convierte en una función, una interfaz o un servicio, el código se atomiza y pierde continuidad. El lector ya no lucha con detalle mezclado, pero ahora lucha con demasiados saltos entre piezas diminutas.
+
+La meta no es maximizar abstracciones. La meta es encontrar el nivel correcto para que una pieza exprese lo necesario con el menor ruido posible.
+
+### Regla práctica
+Si una función de alto nivel obliga a leer demasiados detalles mecánicos, separa niveles. Si una abstracción no comunica una capacidad real ni reduce complejidad, probablemente sobra.
+
+Las buenas abstracciones no son las más sofisticadas. Son las que dejan el código más fácil de leer, de cambiar y de discutir.
+</DocsPageLayout>
