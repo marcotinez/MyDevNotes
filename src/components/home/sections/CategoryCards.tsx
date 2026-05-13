@@ -55,33 +55,33 @@ export default function CategoryCards() {
         const content = (
           <>
             {card.wide ? (
-              <div className={`absolute top-1/2 -translate-y-1/2 right-xl hidden md:block ${isDisabled ? "opacity-10" : "opacity-10 group-hover:opacity-20 transition-opacity"}`}>
-                <span className={`material-symbols-outlined text-[120px] ${isDisabled ? "text-outline dark:text-slate-800" : "text-primary dark:text-[#1d3f7a]"}`}>{card.icon}</span>
+              <div className={`absolute top-1/2 -translate-y-1/2 right-xl hidden md:block ${isDisabled ? "opacity-12 dark:opacity-[0.12]" : "opacity-10 dark:opacity-[0.12] group-hover:opacity-20 dark:group-hover:opacity-[0.22] transition-opacity"}`}>
+                <span className={`material-symbols-outlined text-[120px] ${isDisabled ? "text-outline dark:text-white" : "text-primary dark:text-white"}`}>{card.icon}</span>
               </div>
             ) : (
-              <div className={`absolute top-0 right-0 p-lg ${isDisabled ? "opacity-10" : "opacity-10 group-hover:opacity-20 transition-opacity"}`}>
-                <span className={`material-symbols-outlined text-[80px] ${isDisabled ? "text-outline dark:text-slate-800" : "text-primary dark:text-[#1d3f7a]"}`}>{card.icon}</span>
+              <div className={`absolute top-0 right-0 p-lg ${isDisabled ? "opacity-12 dark:opacity-[0.12]" : "opacity-10 dark:opacity-[0.12] group-hover:opacity-20 dark:group-hover:opacity-[0.22] transition-opacity"}`}>
+                <span className={`material-symbols-outlined text-[80px] ${isDisabled ? "text-outline dark:text-white" : "text-primary dark:text-white"}`}>{card.icon}</span>
               </div>
             )}
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-md border ${
-              isDisabled
-                ? "bg-surface-container dark:bg-[#171a22] border-outline-variant dark:border-slate-700"
-                : "bg-primary-fixed dark:bg-[#16284e] border-primary-fixed-dim dark:border-[#29437a] group-hover:bg-primary group-hover:text-on-primary transition-colors"
-            }`}>
-              <span className={`material-symbols-outlined ${isDisabled ? "text-outline dark:text-slate-500" : "text-primary dark:text-slate-100 group-hover:text-on-primary"}`}>{card.icon}</span>
-            </div>
-            <h2 className={`font-headline-md text-headline-md mb-sm ${isDisabled ? "text-on-surface-variant dark:text-slate-500" : "text-on-surface dark:text-slate-100"}`}>{card.title}</h2>
-            <p className={`font-body-md text-body-md ${card.wide ? "max-w-lg" : ""} ${isDisabled ? "text-outline dark:text-slate-600" : "text-on-surface-variant dark:text-slate-300"}`}>
-              {card.description}
-            </p>
-            {isDisabled && (
-              <>
-                <div className="absolute inset-0 bg-surface/55 dark:bg-[#090a0d]/60" aria-hidden="true" />
-                <div className="absolute inset-x-lg bottom-lg inline-flex w-fit items-center rounded-full border border-outline-variant dark:border-slate-700 bg-surface-container dark:bg-[#171a22] px-sm py-xs font-label-sm text-label-sm text-on-surface-variant dark:text-slate-400">
+            {isDisabled && <div className="absolute inset-0 bg-surface/55 dark:bg-[#090a0d]/60" aria-hidden="true" />}
+            <div className="relative z-10 flex h-full flex-col">
+              <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-md border ${
+                isDisabled
+                  ? "bg-surface-container dark:bg-[#171a22] border-outline-variant dark:border-slate-700"
+                  : "bg-primary-fixed dark:bg-[#16284e] border-primary-fixed-dim dark:border-[#29437a] group-hover:bg-primary group-hover:text-on-primary transition-colors"
+              }`}>
+                <span className={`material-symbols-outlined ${isDisabled ? "text-outline dark:text-slate-500" : "text-primary dark:text-slate-100 group-hover:text-on-primary"}`}>{card.icon}</span>
+              </div>
+              <h2 className={`font-headline-md text-headline-md mb-sm ${isDisabled ? "text-on-surface-variant dark:text-slate-500" : "text-on-surface dark:text-slate-100"}`}>{card.title}</h2>
+              <p className={`font-body-md text-body-md ${card.wide ? "max-w-lg" : ""} ${isDisabled ? "text-outline dark:text-slate-600" : "text-on-surface-variant dark:text-slate-300"}`}>
+                {card.description}
+              </p>
+              {isDisabled && (
+                <div className="mt-md inline-flex w-fit items-center rounded-full border border-outline-variant dark:border-slate-700 bg-surface-container dark:bg-[#171a22] px-sm py-xs font-label-sm text-label-sm text-on-surface-variant dark:text-slate-400">
                   Próximamente
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </>
         );
 
