@@ -1,0 +1,215 @@
+---
+navOrder: 9
+navLabel: "Diseño de APIs y Contratos"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Diseño de APIs y Contratos | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Diseño de APIs y Contratos"
+  pageDescription="Una API bien diseñada comunica qué espera, qué garantiza y qué puede salir mal. Aquí se ve cómo pensar en firmas claras, precondiciones, postcondiciones y manejo de errores como parte del diseño, no como un detalle posterior."
+  prevPage={{ href: "/fundamentos/complejidad-accidental-vs-esencial", label: "Complejidad Accidental vs Esencial" }}
+  nextPage={{ href: "/fundamentos/trade-offs-y-cuando-no-abstraer", label: "Trade-offs y Cuándo No Abstraer" }}
+>
+---
+Cada función, clase o módulo que se escribe expone una interfaz hacia el resto del sistema. Esa interfaz es un contrato: especifica qué necesita para funcionar, qué garantiza cuando termina y qué puede salir mal. Si ese contrato es claro, quien consume el código no necesita leer la implementación para saber cómo usarlo. Si no lo es, cada llamada exige abrir el código fuente para entender qué se espera y qué puede ocurrir.
+
+Este enfoque, conocido como Diseño por Contrato, fue formalizado por Bertrand Meyer. La idea central es que el cliente y el proveedor de una función colaboran bajo obligaciones mutuas, igual que en un contrato de negocios. El cliente se compromete a cumplir ciertas condiciones antes de llamar. El proveedor se compromete a garantizar ciertas condiciones cuando termina.
+
+### Precondiciones y postcondiciones
+
+Un contrato tiene dos lados.
+
+Las **precondiciones** son lo que el cliente debe cumplir antes de invocar una función. Si el cliente las viola, es un bug del cliente, y la respuesta correcta del sistema es fallar explícitamente, no intentar avanzar a ciegas con datos inválidos.
+
+Las **postcondiciones** son lo que la función se compromete a garantizar cuando termina, asumiendo que las precondiciones se cumplieron. Eso incluye el valor de retorno y el estado del sistema después de la operación.
+
+```ts
+function withdraw(account: Account, amount: number): void {
+  // Precondiciones: responsabilidad del cliente cumplirlas
+  if (amount <= 0) throw new Error("El monto debe ser positivo");
+  if (account.balance < amount) throw new InsufficientFundsError();
+
+  account.balance -= amount;
+  // Postcondición garantizada: account.balance >= 0
+}
+```
+
+Las precondiciones no están para recuperarse de entradas inválidas. Están para declarar qué es responsabilidad del cliente y para que los errores aparezcan temprano, en el lugar donde se originan.
+
+Esto difiere de la programación defensiva extrema, donde cada función intenta sobrevivir a cualquier entrada posible. Esa estrategia llena el código de condicionales para manejar casos que en realidad son bugs de quien llama. No elimina los errores, los oculta y los deja explotar más adelante, en un lugar distinto al que los causó.
+
+### Errores esperados como parte del contrato
+
+Los errores de dominio no son sorpresas. Fondos insuficientes, usuario no encontrado, estado inválido: son casos contemplados del problema y deben estar representados explícitamente en el contrato.
+
+Devolver códigos numéricos o valores `null` para indicarlos convierte esos casos en detalles que el consumidor puede ignorar accidentalmente. Un olvido al verificar un retorno ambiguo puede causar un fallo en un lugar completamente distinto al origen del problema.
+
+Caso con retorno ambiguo:
+
+```ts
+function processWithdrawal(
+  account: Account | null,
+  amount: number,
+  log: boolean
+): number {
+  if (!account) return -1;
+  if (amount <= 0) return -2;
+  if (account.balance < amount) return 0;
+
+  account.balance -= amount;
+  if (log) writeLog();
+  return 1;
+}
+```
+
+Ese diseño acumula varios problemas. El nombre no dice qué devuelve. Los códigos numéricos son opacos: hay que buscar la documentación o la implementación para saber qué significa `0` o `-2`. El flag booleano indica que la función hace más de una cosa. Y quien llama puede ignorar el valor de retorno sin que nada lo detenga.
+
+Caso con contrato explícito:
+
+```ts
+function withdraw(account: Account, amount: number): void {
+  if (amount <= 0) throw new Error("El monto debe ser positivo");
+  if (account.balance < amount) throw new InsufficientFundsError();
+
+  account.balance -= amount;
+}
+```
+
+Ahora el contrato es legible desde la firma. La función se llama `withdraw` porque eso hace. Los errores de dominio tienen nombre propio que explica qué salió mal. Y el consumidor tiene que manejar `InsufficientFundsError` de forma explícita, en lugar de olvidarse de verificar un número.
+
+### 1. Nombres que comunican el contrato
+
+Si el nombre de una función o clase requiere un comentario para explicar qué hace, el contrato ya está incompleto antes de que el código se ejecute.
+
+Caso con nombre genérico:
+
+```ts
+class DataProcessor {
+  process(data: any): any {
+    // ¿Procesa qué datos? ¿Devuelve qué? ¿Qué formato espera?
+  }
+}
+```
+
+`DataProcessor` y `process` dicen que algo ocurre, pero no qué ni para qué. El consumidor no puede saber cómo usar esto sin leer la implementación completa.
+
+Caso con nombre que revela intención:
+
+```ts
+class InvoiceExporter {
+  exportToPDF(invoice: Invoice): Buffer {
+    // La firma dice qué entra, qué sale y cuál es la responsabilidad.
+  }
+}
+```
+
+Aquí el contrato vive en el nombre. `InvoiceExporter` tiene una responsabilidad clara. `exportToPDF` recibe una factura y devuelve un buffer. No hay ambigüedad sobre qué hace ni cómo usarla.
+
+Palabras como `Manager`, `Handler`, `Processor` o `Data` en nombres de clases suelen ser una señal de responsabilidad difusa. La clase hace muchas cosas pero no puede explicar en una frase cuál es la principal. Antes de aplicar `Rename Class`, conviene preguntarse si el problema está en el nombre o en la responsabilidad misma.
+
+### 2. El exceso de parámetros
+
+Una firma con muchos argumentos es frágil. Cuando varios parámetros son del mismo tipo, el orden importa y los errores de orden son silenciosos: el compilador no los detecta y en runtime el comportamiento simplemente es incorrecto.
+
+Caso con demasiados parámetros:
+
+```ts
+function createUser(
+  firstName: string,
+  lastName: string,
+  email: string,
+  role: string,
+  isActive: boolean
+): User { ... }
+
+// El sitio de llamada no documenta nada
+createUser("Juan", "Pérez", "juan@mail.com", "admin", true);
+```
+
+Leer `createUser("Juan", "Pérez", "juan@mail.com", "admin", true)` no deja claro qué significa cada argumento. Intercambiar dos `string` por error es un bug que TypeScript no va a atrapar.
+
+Caso con objeto de parámetros:
+
+```ts
+interface CreateUserInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+}
+
+function createUser(input: CreateUserInput): User { ... }
+
+createUser({
+  firstName: "Juan",
+  lastName: "Pérez",
+  email: "juan@mail.com",
+  role: "admin",
+  isActive: true,
+});
+```
+
+El sitio de llamada ahora se autodocumenta. Agregar un campo nuevo no rompe el orden de los argumentos existentes. El contrato es más robusto y más fácil de leer.
+
+El refactor que aplica es `Introduce Parameter Object`.
+
+### 3. Parámetros booleanos
+
+Un parámetro booleano en una función es casi siempre una señal de que la función hace dos cosas distintas según el valor recibido.
+
+Caso con flag booleano:
+
+```ts
+function sendEmail(user: User, isWelcome: boolean): void {
+  if (isWelcome) {
+    mailer.send(user.email, "Bienvenido", welcomeTemplate(user));
+  } else {
+    mailer.send(user.email, "Notificación", notificationTemplate(user));
+  }
+}
+
+// El sitio de llamada no comunica nada
+sendEmail(user, true);
+sendEmail(user, false);
+```
+
+`sendEmail(user, true)` no dice nada por sí solo. El lector tiene que abrir la implementación para saber qué significa `true`. Cuando hay varios booleanos juntos, la situación se vuelve peor: `createReport(data, true, false, true)` es imposible de leer sin contexto.
+
+Caso con dos funciones separadas:
+
+```ts
+function sendWelcomeEmail(user: User): void {
+  mailer.send(user.email, "Bienvenido", welcomeTemplate(user));
+}
+
+function sendNotificationEmail(user: User): void {
+  mailer.send(user.email, "Notificación", notificationTemplate(user));
+}
+```
+
+Ahora cada función tiene un contrato propio. El sitio de llamada es legible sin contexto adicional. Cada función puede cambiar de forma independiente sin afectar a la otra.
+
+El refactor que aplica es `Remove Flag Argument`: separar el método en versiones distintas según el comportamiento que el flag controlaba.
+
+### Cómo se conecta con el resto de fundamentos
+
+El diseño de contratos toca la mayoría de los temas anteriores en esta serie.
+
+* **Code Smells:** `Long Parameter List` y `Flag Argument` son dos de los smells más directamente relacionados con este tema. Los ejemplos de este artículo son versiones concretas de esos problemas.
+* **Abstracciones:** la firma de una función es la abstracción que expone hacia afuera. Si esa abstracción miente (nombre genérico, retorno opaco, parámetros sin contexto), el contrato se rompe antes de que el código se ejecute.
+* **Acoplamiento:** una API con precondiciones claras y tipos específicos reduce el acoplamiento accidental. Quien llama sabe exactamente qué dar y qué esperar, sin necesidad de conocer los detalles internos.
+* **SOLID:** el flag booleano viola directamente `S`. Si una función hace una cosa cuando recibe `true` y otra distinta cuando recibe `false`, tiene dos razones para cambiar y debería dividirse.
+
+### Cuándo no llevarlo al extremo
+
+No toda función necesita precondiciones explícitas con excepciones. Funciones privadas dentro de un módulo bien controlado pueden confiar en que sus llamadas vienen de contextos ya validados. Agregar `if (x === null) throw` antes de cada línea de código privado es ruido, no diseño.
+
+El contrato formal tiene más valor en los límites del sistema: funciones públicas, módulos compartidos entre equipos, librerías reutilizables. En el interior de un módulo privado y bien encapsulado, el nivel de formalidad puede ser menor sin que eso sea un problema.
+
+### Regla práctica
+Si alguien tiene que abrir la implementación de una función para saber cómo llamarla, qué espera o qué puede fallar, el contrato está incompleto. Una buena firma hace ese viaje innecesario.
+</DocsPageLayout>

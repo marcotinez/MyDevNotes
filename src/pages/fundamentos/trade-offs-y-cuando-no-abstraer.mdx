@@ -1,0 +1,196 @@
+---
+navOrder: 10
+navLabel: "Trade-offs y Cuándo No Abstraer"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Trade-offs y Cuándo No Abstraer | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Trade-offs y Cuándo No Abstraer"
+  pageDescription="Toda decisión de diseño implica un trade-off. Aquí se ve cómo razonar sobre esos intercambios, cuándo una abstracción aporta valor real y cuándo agregar estructura antes de tiempo solo complica las cosas."
+  prevPage={{ href: "/fundamentos/diseno-de-apis-y-contratos", label: "Diseño de APIs y Contratos" }}
+  nextPage={{ href: "/fundamentos/testing-como-senal-de-diseno", label: "Testing como señal de diseño" }}
+>
+---
+En ingeniería de software rara vez existen verdades absolutas. Toda decisión de diseño es un intercambio de ventajas y desventajas. A menudo, en la búsqueda del código "limpio" o "perfecto", se cae en la trampa de la sobreingeniería: añadir capas, patrones y abstracciones antes de entender bien el problema.
+
+La mentalidad de **simplicidad primero** propone lo contrario: es preferible convivir con una base de código plana y ligeramente repetitiva antes que quedar atrapado en un laberinto de abstracciones prematuras e incorrectas. La complejidad se añade cuando el problema la justifica, no antes.
+
+### La abstracción no es gratis
+
+Las abstracciones son herramientas poderosas para gestionar la complejidad, pero tienen un costo que no siempre es obvio.
+
+Cada nueva capa de indirección aumenta la carga cognitiva. Es un concepto más que los desarrolladores deben mantener en la cabeza para rastrear qué está haciendo realmente el código. Una abstracción que parece "limpia" en el momento de crearla puede volverse un obstáculo cuando alguien nuevo intenta entender el flujo real del sistema.
+
+Además, toda abstracción es un compromiso direccional: se diseña para proteger y facilitar un eje de cambio específico. Eso inevitablemente hace que otros tipos de cambios no previstos sean más rígidos de implementar. Una abstracción resuelve bien los problemas que anticipó, pero puede estorbar ante los que no anticipó.
+
+### El peligro de la abstracción prematura
+
+Intentar anticipar el futuro del negocio y construir infraestructura "por si acaso" es uno de los errores más caros en desarrollo de software. No sabemos qué requisitos va a exigir el futuro. Cuando se abstrae antes de entender completamente el problema, la solución queda sesgada hacia el único caso de uso conocido en ese momento.
+
+Como establece la máxima consolidada por Sandi Metz: **la duplicación es mucho más barata que la abstracción incorrecta**.
+
+Una abstracción prematura se arraiga rápido. Impulsados por la falacia del costo hundido, los equipos tienden a preservar el esfuerzo invertido en esa arquitectura inicial. Cuando los requisitos cambian de formas imprevistas, en lugar de deshacer la mala abstracción, se la retuerce para que encaje. El resultado es una abstracción que ya no representa ningún concepto real, rodeada de casos especiales y flags para cubrir los bordes que no encajan.
+
+### 1. La regla de tres
+
+La regla de tres es una guía pragmática para decidir cuándo extraer una abstracción.
+
+* La primera vez que haces algo, escríbelo directo.
+* La segunda vez que aparece algo similar, duplica y siente la incomodidad. Todavía no sabes si es el mismo concepto o una coincidencia.
+* La tercera vez, si estás seguro de que es el mismo patrón central, extrae la abstracción.
+
+Aplicado a un ejemplo real:
+
+```ts
+// Primera vez: directo, sin abstraer
+function sendWelcomeEmail(user: User): void {
+  mailer.send(user.email, "Bienvenido", `Hola ${user.name}, tu cuenta está lista.`);
+}
+
+// Segunda vez: duplica, pero ya empieza a molestar
+function sendPasswordResetEmail(user: User, token: string): void {
+  mailer.send(user.email, "Restablece tu contraseña", `Usa este enlace: /reset?token=${token}`);
+}
+
+// Tercera vez: el patrón es claro y la abstracción tiene sentido
+function sendEmail(user: User, subject: string, body: string): void {
+  mailer.send(user.email, subject, body);
+}
+```
+
+La abstracción en la tercera iteración no especula. Emerge de casos reales y concretos, lo que hace mucho más probable que represente bien el concepto subyacente.
+
+### 2. Duplicación accidental
+
+El principio DRY (Don't Repeat Yourself) trata de evitar la duplicación de conocimiento y comportamiento, no la mera coincidencia de texto. Dos bloques de código pueden verse idénticos hoy y aun así representar conceptos de negocio completamente distintos.
+
+La pregunta clave es: si cambias una de las piezas para satisfacer un nuevo requisito, ¿estás obligado lógicamente a actualizar la otra de la misma manera?
+
+Caso de duplicación accidental:
+
+```ts
+function calculateEmployeeTax(salary: number): number {
+  return salary * 0.15;
+}
+
+function calculateContractorTax(income: number): number {
+  return income * 0.15;
+}
+```
+
+Hoy las dos funciones son idénticas. Pero si la legislación cambia el impuesto para empleados sin afectar el de contratistas, modificarlas juntas sería un bug. Son conceptos distintos que hoy comparten un valor, no una misma regla.
+
+Abstracción errónea:
+
+```ts
+// ¿Impuesto de quién? ¿Bajo qué régimen?
+function calculateTax(amount: number): number {
+  return amount * 0.15;
+}
+```
+
+Esta unificación borra la distinción entre dos reglas de negocio que llevan vidas separadas. Cuando diverjan, que eventualmente lo harán, deshacer la abstracción va a ser más costoso que haberlas dejado duplicadas desde el principio.
+
+### 3. Contaminación de la firma
+
+Otra señal de que una abstracción no funciona es cuando, para reutilizarla en un nuevo caso, hay que añadirle parámetros, flags booleanos o condicionales internos.
+
+Caso que empieza limpio:
+
+```ts
+function formatUserName(user: User): string {
+  return `${user.firstName} ${user.lastName}`;
+}
+```
+
+Nuevo requisito: los reportes necesitan el nombre en mayúsculas. La tentación es extender la función existente:
+
+```ts
+// Abstracción contaminada
+function formatUserName(user: User, uppercase: boolean): string {
+  const name = `${user.firstName} ${user.lastName}`;
+  return uppercase ? name.toUpperCase() : name;
+}
+```
+
+La firma ahora carga con un flag que cambia el comportamiento. Quien lee `formatUserName(user, true)` en el sitio de llamada no entiende qué significa `true` sin abrir la implementación. Y si aparece un tercer caso (minúsculas, formato abreviado, iniciales), la función sigue creciendo.
+
+La señal es clara: no es la misma abstracción con un detalle variable, son dos responsabilidades distintas que no deberían compartir función.
+
+```ts
+function formatUserName(user: User): string {
+  return `${user.firstName} ${user.lastName}`;
+}
+
+function formatUserNameForReport(user: User): string {
+  return `${user.firstName} ${user.lastName}`.toUpperCase();
+}
+```
+
+Más código, pero cada función tiene un contrato claro y puede evolucionar de forma independiente.
+
+### 4. La presión del cambio como señal
+
+La señal más confiable para abstraer no es ver código parecido, sino tener que cambiar el mismo concepto en varios lugares al mismo tiempo.
+
+Cuando la misma regla de negocio aparece duplicada en tres módulos distintos y cada vez que evoluciona hay que buscarla en todos lados, ese dolor es la presión que justifica la abstracción.
+
+```ts
+// La misma regla dispersa en tres módulos
+// ProductService:
+if (!product.isActive || product.stock === 0) {
+  throw new Error("Producto no disponible");
+}
+
+// CartService:
+if (!product.isActive || product.stock === 0) {
+  return false;
+}
+
+// CheckoutService:
+if (!product.isActive || product.stock === 0) {
+  throw new OutOfStockError();
+}
+```
+
+La regla de negocio "un producto está disponible si está activo y tiene stock" está duplicada en tres lugares con tres comportamientos distintos. Cuando esa regla cambie, hay que encontrarla y actualizarla en todos.
+
+```ts
+class Product {
+  isAvailable(): boolean {
+    return this.isActive && this.stock > 0;
+  }
+}
+
+// Ahora cada módulo usa la misma fuente de verdad
+if (!product.isAvailable()) { ... }
+```
+
+Aquí la abstracción no especula. Resuelve un problema real y visible: una regla que necesita vivir en un solo lugar porque cambia como una unidad.
+
+### Criterio para revisiones de código
+
+En revisiones de código, el comentario "esto viola DRY" suele abrir debates que terminan en abstracciones prematuras. Una alternativa más útil es plantear el trade-off de forma explícita.
+
+Es perfectamente válido, y a veces un signo de buen criterio técnico, justificar en un Pull Request algo como:
+
+*"Elegí duplicar este código por ahora porque no estoy seguro de que estos dos casos evolucionen de la misma manera. Prefiero esperar a tener más casos concretos antes de arriesgarme a crear la abstracción incorrecta."*
+
+Esa justificación no es pereza. Es reconocer que la información disponible todavía no alcanza para tomar una buena decisión de abstracción, y que duplicar temporalmente es menos costoso que deshacer una abstracción incorrecta después.
+
+### Cómo se conecta con el resto de fundamentos
+
+Este artículo cierra el ciclo de la serie porque toca casi todos los temas anteriores desde el ángulo del criterio.
+
+* **Complejidad accidental:** las abstracciones prematuras son una de las fuentes más frecuentes de complejidad accidental. El código queda más complicado de lo que el problema exige.
+* **Abstracciones y niveles:** una abstracción que no emergió de casos reales suele mezclar niveles o esconder detalles que en realidad son distintos.
+* **Acoplamiento y cohesión:** forzar dos conceptos distintos en una misma abstracción baja la cohesión y sube el acoplamiento entre cosas que deberían ser independientes.
+* **SOLID:** el principio de responsabilidad única aplica aquí directamente. Una abstracción que creció para cubrir casos que no comparten la misma razón de cambio viola `S` desde el diseño.
+* **Diseño de APIs y Contratos:** la contaminación de firma es un síntoma directo de una abstracción forzada. El contrato de la función deja de ser claro porque ya no representa un solo concepto.
+
+### Regla práctica
+Siempre se puede añadir complejidad cuando el negocio la justifique. Desenredar una abstracción incorrecta que ya se arraigó es mucho más costoso. Ante la duda, la opción más barata suele ser esperar.
+</DocsPageLayout>

@@ -1,0 +1,156 @@
+---
+navOrder: 8
+navLabel: "Complejidad Accidental vs Esencial"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Complejidad Accidental vs Esencial | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Complejidad Accidental vs Esencial"
+  pageDescription="No toda complejidad en el software es igual. La complejidad esencial viene del problema en sí y no se puede eliminar. La accidental es la que nosotros introducimos y sí se puede reducir."
+  prevPage={{ href: "/fundamentos/principios-solid", label: "Principios SOLID" }}
+  nextPage={{ href: "/fundamentos/diseno-de-apis-y-contratos", label: "Diseño de APIs y Contratos" }}
+>
+---
+Abrir un proyecto y encontrar una arquitectura enrevesada lleva casi siempre al mismo pensamiento: "esto está sobre-diseñado". Pero no toda la complejidad que parece excesiva lo es. Algunas piezas son complicadas porque el problema que resuelven es complicado. Otras son complicadas porque alguien tomó decisiones que las hicieron más difíciles de lo necesario.
+
+Fred Brooks introdujo esta distinción en *No Silver Bullet* (1986). La complejidad del software se divide en dos categorías: la que viene del problema en sí, y la que nosotros introducimos al intentar resolverlo. Aprender a separar una de la otra es uno de los criterios de diseño más útiles que existen.
+
+### Complejidad esencial
+La complejidad esencial viene del dominio del problema, no del código que lo resuelve.
+
+Si un sistema bancario debe cumplir 30 normativas legales, esas 30 reglas tienen que vivir en algún lugar del código. No hay forma de eliminarlas sin romper el sistema. Son irreductibles porque no son una decisión del programador, sino una restricción del problema.
+
+Una metáfora útil para entender esto es la de una cama de agua: si la empujas de un lado, el volumen reaparece en otro. No desaparece, solo se mueve. Intentar eliminar complejidad esencial a la fuerza no la resuelve, la redistribuye de una forma menos visible, lo que suele ser peor.
+
+El trabajo correcto con complejidad esencial no es eliminarla, sino gestionarla. Buen diseño, buenas abstracciones y separación de responsabilidades ayudan a contenerla en los lugares correctos sin que se derrame por todo el sistema.
+
+### Complejidad accidental
+La complejidad accidental es la que nosotros añadimos encima del problema real al intentar resolverlo.
+
+No viene del dominio. Viene de elegir la abstracción equivocada, anticipar flexibilidad que nunca llega, dejar soluciones temporales que se vuelven permanentes, o saltarse buenas prácticas para cumplir fechas y no volver a arreglarlo después.
+
+Aparece de varias formas:
+
+* **Sobreingeniería:** crear estructuras complejas para resolver tareas simples, anticipando extensibilidad que probablemente nunca se va a necesitar.
+* **Reinventar la rueda:** gastar tiempo en soluciones propias cuando hay herramientas establecidas que resuelven el mismo problema mejor.
+* **Accidentes históricos:** parches temporales que se volvieron permanentes, capas de código muerto que nadie se animó a borrar, configuraciones que ya no aplican.
+* **Deuda técnica ignorada:** saltarse buenas prácticas para cumplir plazos sin volver a refactorizar. A corto plazo parece una ganancia de tiempo. A largo plazo hace que cada cambio lleve más de lo que debería.
+
+La complejidad accidental es peligrosa no solo porque complica el código, sino porque drena energía del equipo, dificulta la planificación y hace que mantener el sistema sea cada vez más costoso.
+
+### 1. Cómo se ve la complejidad accidental
+El ejemplo más clásico es anticipar un patrón de extensibilidad antes de que exista una razón concreta para él.
+
+El problema: aplicar un descuento del 10% al precio de un producto.
+
+Caso con complejidad accidental:
+
+```ts
+interface DiscountStrategy {
+  apply(price: number): number;
+}
+
+class PercentageDiscount implements DiscountStrategy {
+  constructor(private readonly pct: number) {}
+
+  apply(price: number) {
+    return price * (1 - this.pct / 100);
+  }
+}
+
+class DiscountEngine {
+  constructor(private strategy: DiscountStrategy) {}
+
+  execute(price: number) {
+    return this.strategy.apply(price);
+  }
+}
+
+const engine = new DiscountEngine(new PercentageDiscount(10));
+const final = engine.execute(100); // → 90
+```
+
+Hay cuatro piezas para resolver algo que no las necesita: una interfaz, una clase de estrategia, un engine y la lógica de instanciación. Si mañana existen cinco tipos de descuento con reglas complejas, esa estructura empieza a tener sentido. Con un solo caso de uso, es peso sin valor real.
+
+Caso sin complejidad accidental:
+
+```ts
+function applyDiscount(price: number, percentage: number): number {
+  return price * (1 - percentage / 100);
+}
+
+const final = applyDiscount(100, 10); // → 90
+```
+
+La lógica es exactamente la misma. La función no cierra la puerta a refactorizar cuando el dominio crezca de verdad. Pero no anticipa esa complejidad antes de que sea necesaria.
+
+El refactor que aplica aquí cuando existe demasiada estructura sin justificación concreta es `Inline Class`: colapsar las capas intermedias hasta que el código vuelva a ser proporcional al problema.
+
+### 2. Cómo se ve la complejidad esencial
+Ese mismo sistema de comercio, en el momento en que maneja envíos reales, puede necesitar algo así:
+
+```ts
+function calcularCostoEnvio(orden: Orden): number {
+  if (orden.destino.pais !== orden.origen.pais) {
+    aplicarArancelesInternacionales(orden);
+  }
+
+  if (orden.peso > LIMITE_CARGA_PESADA) {
+    aplicarTarifaCargaPesada(orden);
+  }
+
+  if (orden.tieneProductosRestringidos()) {
+    verificarPermisoAduanal(orden);
+  }
+
+  if (esZonaRemota(orden.destino)) {
+    aplicarSurcargoRemoto(orden);
+  }
+
+  return orden.calcularTotal();
+}
+```
+
+Cada rama cubre una regla de negocio real. Eliminar alguna no simplifica el código, rompe el sistema. Si el dominio tiene cuatro condiciones, el código va a tener cuatro condiciones. Esa complejidad es esencial.
+
+La diferencia frente al ejemplo anterior no está en cuántas líneas hay, sino en de dónde vienen esas líneas. En el caso del descuento, la estructura la introdujimos nosotros sin necesidad. En el caso del envío, la estructura viene del problema que hay que resolver.
+
+### 3. El error más común en code review
+Catalogar algo como complejidad accidental en una revisión de código sin tener el contexto completo es uno de los errores más frecuentes al revisar trabajo ajeno.
+
+Si eres nuevo en un equipo o en una parte del sistema, puede parecer obvio que cierta abstracción es innecesaria. Pero esa pieza podría estar cubriendo casos límite que no conoces todavía, separando responsabilidades entre equipos, o resolviendo un problema de rendimiento que no es visible desde afuera.
+
+Para distinguir bien antes de opinar, conviene hacerse una pregunta concreta:
+
+*¿Qué perderíamos si simplificamos esto?*
+
+* Si la respuesta es "nada relevante" o "el código quedaría más claro", probablemente es complejidad accidental y tiene sentido eliminarla.
+* Si al simplificar se pierde una regla de negocio, se cruzan responsabilidades de equipos distintos, o se degrada el rendimiento requerido, la complejidad está justificada.
+
+Y cuando la complejidad accidental es real, la forma de señalarlo importa. Una crítica directa tiende a generar postura defensiva. Una pregunta colaborativa abre mejor la conversación:
+
+*"Dadas las restricciones del negocio, ¿hay alguna manera de lograr las mismas garantías con menos complejidad?"*
+
+Eso pone a los dos desarrolladores del mismo lado del problema en lugar de enfrentados.
+
+### Cómo se conecta con el resto de fundamentos
+Esta distinción cruza casi todo lo anterior en esta serie.
+
+* **Code Smells:** muchos de los smells clásicos son formas concretas de complejidad accidental. El smell señala el síntoma. Esta distinción ayuda a entender la causa.
+* **Abstracciones y niveles:** una abstracción que no encapsula nada útil es complejidad accidental. Una que organiza una regla de dominio puede ser esencial.
+* **Acoplamiento y cohesión:** el acoplamiento innecesario y la baja cohesión son en gran parte complejidad accidental. Aparecen cuando alguien mezcló responsabilidades que no correspondían juntas.
+* **SOLID:** los principios apuntan en parte a reducir complejidad accidental. `S` evita que las clases acumulen responsabilidades ajenas. `D` evita que el código de negocio quede atado a detalles de infraestructura que pueden cambiar.
+
+### Cuándo no aplicarlo como dogma
+La distinción entre esencial y accidental no siempre es obvia ni estática.
+
+Algo que hoy parece complejidad accidental puede volverse esencial mañana si el dominio crece. Una abstracción que parece anticipada puede ser la decisión correcta si el equipo ya sabe que esa flexibilidad va a ser necesaria pronto.
+
+El criterio no es una regla absoluta. Es una pregunta de diseño que conviene hacerse con regularidad: ¿esta complejidad viene del problema, o la estamos introduciendo nosotros?
+
+### Regla práctica
+Antes de añadir una capa, un patrón o una abstracción, vale la pena preguntarse de dónde viene la complejidad. Si viene del dominio, encontrar la mejor forma de gestionarla. Si la estamos introduciendo nosotros, preguntarse si realmente hace falta ahora.
+</DocsPageLayout>

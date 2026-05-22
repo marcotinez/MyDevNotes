@@ -1,0 +1,167 @@
+---
+navOrder: 4
+navLabel: "Consistencia y Convenciones"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Consistencia y Convenciones | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Consistencia y Convenciones"
+  pageDescription="Las convenciones no son burocracia. Son el acuerdo tácito que permite a un equipo leer código ajeno como si fuera propio. Aquí se ve qué estandarizar, cuándo hacerlo y por qué la consistencia importa más que el criterio individual."
+  prevPage={{ href: "/fundamentos/refactoring", label: "Refactoring" }}
+  nextPage={{ href: "/fundamentos/acoplamiento-y-cohesion", label: "Acoplamiento y Cohesión" }}
+>
+---
+Escribir código que la máquina entienda es la parte fácil. Escribir código que los compañeros puedan entender, mantener y modificar con seguridad es el reto real. Para lograrlo, los equipos necesitan establecer y respetar convenciones compartidas.
+
+Una convención no es un reglamento burocrático para limitar la creatividad. Es un acuerdo pragmático para reducir fricción, evitar debates innecesarios y priorizar la mantenibilidad del proyecto a largo plazo. Su valor no está en cuál opción se elige, sino en que todo el equipo elija una sola y la respete.
+
+### El costo real de la inconsistencia
+
+Entre el 40% y el 80% del tiempo dedicado a un fragmento de código se destina a su mantenimiento. El código se lee mucho más de lo que se escribe. Cualquier irregularidad visual o estructural tiene un impacto directo en la carga cognitiva del lector.
+
+Cuando un proyecto carece de consistencia, quien lee el código gasta energía mental descifrando el formato, la estructura o las intenciones detrás de cada decisión. Esa energía debería estar disponible para entender la lógica de negocio, no para decodificar el estilo de cada autor. Estudios históricos en producción de software encontraron que un estilo de sangrado coherente es uno de los indicadores más significativos de baja densidad de errores. No porque el sangrado sea mágico, sino porque refleja un equipo que se pone de acuerdo.
+
+### Qué estandarizar
+
+La consistencia tiene que aplicarse en tres niveles para que funcione bien.
+
+**Naming:** el vocabulario del proyecto debe ser uniforme. Las clases son sustantivos (`Customer`, `Account`, `Invoice`). Las funciones son verbos o frases verbales que denotan acción (`calculateTotal`, `save`, `getById`). Si el equipo decide usar `get` para obtener datos, no debería aparecer `fetch` o `retrieve` para la misma acción en otro módulo. El idioma también debe ser consistente: mezclar español e inglés en el mismo código genera ruido sin ningún beneficio.
+
+**Estructura y estilo:** la organización física del código, el sangrado, el uso de espacios en blanco y el orden de los elementos dentro de un archivo. Si las variables de instancia van al inicio de la clase y los métodos privados debajo de donde se invocan, eso debe cumplirse en todos los archivos. La alineación visual permite navegar el código rápidamente sin tener que leer cada carácter.
+
+**Patrones para los mismos problemas:** si el equipo valida entradas usando un mecanismo específico en un módulo, debería usar el mismo en los demás. Resolver problemas similares de formas completamente distintas a lo largo del código es una de las fuentes más frecuentes de complejidad accidental.
+
+### 1. Inconsistencia en el naming
+
+Un léxico fragmentado obliga al lector a aprender múltiples vocabularios dentro del mismo proyecto.
+
+Caso inconsistente:
+
+```ts
+// Tres verbos distintos para el mismo concepto
+getUserById(id: string): User
+fetchAccount(id: string): Account
+retrieveProduct(id: string): Product
+```
+
+Caso consistente:
+
+```ts
+// Un solo verbo para recuperar entidades
+getUser(id: string): User
+getAccount(id: string): Account
+getProduct(id: string): Product
+```
+
+El cambio parece menor, pero en un proyecto grande la fragmentación se multiplica. Si hay ocho módulos y cada uno usa un verbo distinto para la misma operación, el lector tiene que recordar ocho convenciones en lugar de una.
+
+### 2. Mezcla de idiomas
+
+Mezclar idiomas en el mismo módulo genera confusión sobre qué reglas aplican en qué lugar.
+
+Caso con mezcla de idiomas:
+
+```ts
+class UsuarioService {
+  getUsuario(userId: string): User { ... }
+  guardarUser(user: User): void { ... }
+  deleteUsuario(id: string): void { ... }
+}
+```
+
+Quien lee esto tiene que decidir en cada línea si el contexto es español o inglés. Cuando se busca algo en el código (`grep`, búsqueda en el editor), los resultados se fragmentan entre ambos idiomas.
+
+Caso consistente:
+
+```ts
+class UserService {
+  getById(id: string): User { ... }
+  save(user: User): void { ... }
+  delete(id: string): void { ... }
+}
+```
+
+El idioma del proyecto (generalmente inglés para código, más natural para documentación interna) debe elegirse una sola vez y respetarse en todos los archivos.
+
+### 3. Patrones distintos para el mismo problema
+
+Cuando distintas partes del sistema resuelven el mismo tipo de problema de formas diferentes, cada módulo nuevo exige aprender un conjunto de reglas nuevo.
+
+Caso con patrones inconsistentes:
+
+```ts
+// Módulo de órdenes: falla silenciosamente
+function processOrder(order: Order): void {
+  if (!order.items.length) return;
+  // ...
+}
+
+// Módulo de pagos: lanza excepción
+function processPayment(payment: Payment): void {
+  if (!payment.amount) {
+    throw new Error("Amount is required");
+  }
+  // ...
+}
+```
+
+El problema no es que uno de los dos sea incorrecto. El problema es que son distintos. Quien mantiene el sistema tiene que saber qué patrón usa cada módulo y no puede asumir nada.
+
+Caso con patrón unificado:
+
+```ts
+// El mismo mecanismo de validación en todos los módulos
+function processOrder(order: Order): void {
+  if (!order.items.length) throw new ValidationError("La orden debe tener items");
+  // ...
+}
+
+function processPayment(payment: Payment): void {
+  if (!payment.amount) throw new ValidationError("El monto es requerido");
+  // ...
+}
+```
+
+Ahora quien lee el segundo módulo ya sabe qué esperar porque reconoce el patrón del primero. Esa previsibilidad reduce la carga cognitiva de navegar la base de código.
+
+### Automatizar el estilo, liberar el criterio
+
+Las personas no deberían perder tiempo revisando si faltan espacios, si las llaves están en la línea correcta o si se rompió la indentación. Ese trabajo lo hacen las herramientas.
+
+Un proyecto bien configurado tiene:
+
+* un **formatter** (como Prettier) que aplica el estilo automáticamente al guardar o al hacer commit;
+* un **linter** (como ESLint) que detecta patrones problemáticos y los señala antes de que lleguen a revisión;
+* hooks de pre-commit (como Husky) que impiden subir código que no pase las reglas.
+
+Con eso en su lugar, las revisiones de código quedan libres de comentarios sobre estilo. El tiempo de revisión se destina a discutir lógica, diseño y arquitectura, que es donde el criterio humano realmente aporta valor.
+
+### La regla de oro
+
+Todo desarrollador tiene preferencias estéticas propias. Al trabajar en un proyecto compartido, el equipo manda.
+
+Si al abrir un archivo el código es consistente con el resto del proyecto aunque no coincida con el estilo personal, la decisión correcta es respetar esa convención. Mezclar estilos dentro del mismo archivo o sistema genera ruido, confunde a futuros lectores y hace que el historial de cambios sea más difícil de leer.
+
+La consistencia tiene más valor que cualquier preferencia individual. Un proyecto predecible es un proyecto más fácil de mantener, revisar y escalar.
+
+### Cómo se conecta con el resto de fundamentos
+
+* **Complejidad accidental:** resolver el mismo problema de formas distintas en distintos módulos es una de las formas más frecuentes de introducir complejidad accidental. Las convenciones la reducen sin cambiar la lógica.
+* **Legibilidad y Clean Code:** muchas de las reglas de Clean Code son, en el fondo, convenciones: nombres que revelan intención, funciones pequeñas, ausencia de comentarios innecesarios. La diferencia entre leerlas como guías y aplicarlas como convenciones de equipo es que en el segundo caso todo el proyecto se beneficia, no solo las partes que un autor individual cuidó.
+* **Code Smells:** la inconsistencia de naming o de patrones no siempre es un smell clásico, pero genera la misma fricción: el código comunica menos de lo que podría.
+* **Diseño de APIs y Contratos:** parte del contrato de una función es que su firma siga las convenciones del proyecto. Un nombre que usa un verbo distinto al resto o un patrón de error diferente rompe ese contrato implícito.
+
+### Cuándo no llevarlo al extremo
+
+Estandarizar tiene costos. Imponer convenciones muy rígidas sobre decisiones que no afectan la legibilidad ni la mantenibilidad genera fricción sin beneficio.
+
+Si el equipo pasa horas debatiendo el nombre exacto de una variable local o si un archivo debería tener 80 o 100 columnas por línea, la convención se convirtió en un fin en sí mismo. Las convenciones útiles son las que reducen fricción real, no las que la generan.
+
+El criterio práctico es este: si la inconsistencia hace que el código sea más difícil de leer, entender o cambiar, vale la pena estandarizar. Si la diferencia es puramente estética y no afecta a nadie, probablemente no vale la energía del debate.
+
+### Regla práctica
+Las convenciones valen por su consistencia, no por su contenido. Un proyecto con convenciones imperfectas pero aplicadas de forma uniforme es más fácil de mantener que uno con mejores ideas aplicadas de forma arbitraria.
+</DocsPageLayout>

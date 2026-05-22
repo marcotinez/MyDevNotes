@@ -1,0 +1,207 @@
+---
+navOrder: 11
+navLabel: "Testing como señal de diseño"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Testing como señal de diseño | MyDevNotes"
+  section="Fundamentos"
+  pageTitle="Testing como señal de diseño"
+  pageDescription="Si algo cuesta mucho testear, el diseño probablemente está mal. Los tests no son solo una red de seguridad: son una señal temprana de acoplamiento alto, responsabilidades mezcladas y dependencias ocultas."
+  prevPage={{ href: "/fundamentos/trade-offs-y-cuando-no-abstraer", label: "Trade-offs y Cuándo No Abstraer" }}
+>
+---
+La dificultad para escribir un test rara vez es culpa del framework de pruebas. Casi siempre es un síntoma de fricción en el diseño del código. Existe una relación directa entre testabilidad y calidad estructural: si aislar una pieza para probarla es doloroso, el diseño probablemente tiene un problema.
+
+Los tests actúan como un mecanismo de retroalimentación inmediata. Alertan sobre problemas estructurales mucho antes de que el código llegue a producción. Este artículo no cubre cómo escribir tests completos, eso es la sección de Testing. Cubre cómo leer el dolor al escribirlos como una señal de diseño.
+
+### La pregunta útil
+
+Cada vez que escribir un test cuesta más de lo razonable, vale la pena detenerse y preguntarse: *¿por qué me está costando esto?*
+
+La respuesta casi nunca es "los tests son difíciles". Suele ser una de estas tres cosas: el código depende de demasiadas cosas, hace demasiadas cosas, o esconde demasiadas cosas.
+
+### 1. Setup gigantesco: señal de acoplamiento alto
+
+Si para probar una función hay que inicializar una base de datos, instanciar cinco clases concretas y configurar un logger real, la función depende de demasiados detalles de infraestructura.
+
+Caso difícil de testear:
+
+```ts
+class OrderService {
+  processOrder(orderId: string): void {
+    const db = new PostgresDatabase();
+    const mailer = new SendGridMailer();
+    const logger = new CloudLogger();
+
+    const order = db.findOrder(orderId);
+    mailer.sendConfirmation(order);
+    logger.log("Order processed");
+  }
+}
+
+// Para testear esto se necesita una base de datos real,
+// credenciales de SendGrid y acceso a CloudLogger.
+```
+
+La clase construye sus propias dependencias internamente. No hay forma de sustituirlas en un test sin tocar la implementación.
+
+Caso testeable:
+
+```ts
+class OrderService {
+  constructor(
+    private orderRepo: OrderRepository,
+    private mailer: Mailer,
+    private logger: Logger
+  ) {}
+
+  processOrder(orderId: string): void {
+    const order = this.orderRepo.findById(orderId);
+    this.mailer.sendConfirmation(order);
+    this.logger.log("Order processed");
+  }
+}
+
+// En el test, se pasan implementaciones en memoria
+const service = new OrderService(
+  new InMemoryOrderRepo(),
+  new FakeMailer(),
+  new SilentLogger()
+);
+service.processOrder("123");
+```
+
+Ahora las dependencias son explícitas y reemplazables. El test no necesita infraestructura real. La clase sigue haciendo lo mismo, pero el diseño comunica claramente de qué depende.
+
+El principio que habilita esto es la Inyección de Dependencias: separar la creación de objetos de su uso. Si una clase construye sus colaboradores internamente, el acoplamiento queda oculto y el test lo hace visible.
+
+### 2. Demasiados escenarios: señal de responsabilidades mezcladas
+
+Si un solo método necesita diez casos de prueba para cubrir todos sus caminos lógicos, el método probablemente está haciendo demasiadas cosas.
+
+Caso con responsabilidades mezcladas:
+
+```ts
+class UserManager {
+  register(email: string, password: string, role: string, plan: string): void {
+    // valida formato de email
+    // verifica que el password cumpla las reglas
+    // hashea el password
+    // crea el usuario en la base de datos
+    // asigna el rol
+    // crea la suscripción según el plan
+    // envía el email de bienvenida
+    // registra el evento en analytics
+  }
+}
+```
+
+Para cubrir `register` con tests hay que probar: email inválido, password débil, rol inexistente, plan inválido, fallo de base de datos, fallo del mailer, fallo de analytics, y cada combinación posible. La suite de tests crece de forma proporcional a la cantidad de responsabilidades mezcladas.
+
+Caso con responsabilidades separadas:
+
+```ts
+class EmailValidator {
+  validate(email: string): void { ... }
+}
+
+class PasswordHasher {
+  hash(password: string): string { ... }
+}
+
+class UserRepository {
+  save(user: User): void { ... }
+}
+
+class SubscriptionService {
+  createPlan(user: User, plan: string): void { ... }
+}
+
+class WelcomeMailer {
+  send(user: User): void { ... }
+}
+```
+
+Cada clase tiene sus propios tests enfocados. Cuando falla un test, el error señala exactamente qué responsabilidad tiene el problema. Y cada pieza se puede probar en total aislamiento.
+
+La señal de diseño aquí conecta directamente con el Principio de Responsabilidad Única: si el test de una clase necesita cubrir demasiados escenarios distintos, la clase tiene demasiadas razones para cambiar.
+
+### 3. Lógica interna inaccesible: señal de contratos mal diseñados
+
+Si para verificar el comportamiento de una función hay que acceder a sus métodos privados o forzar el acceso a estado interno, el problema no es el encapsulamiento. Es que esa lógica probablemente merece existir en otro lugar.
+
+Caso donde la lógica está enterrada:
+
+```ts
+class PricingEngine {
+  calculateTotal(items: Item[]): number {
+    const discounted = this.applyDiscounts(items);  // privado
+    const taxed = this.applyTaxes(discounted);       // privado
+    return taxed;
+  }
+
+  private applyDiscounts(items: Item[]): Item[] { ... }
+  private applyTaxes(items: Item[]): number { ... }
+}
+
+// Para testear solo la lógica de descuentos hay que pasar
+// por calculateTotal completo, o romper el encapsulamiento.
+```
+
+La tentación es hacer `applyDiscounts` público solo para poder testearlo. Pero la señal real es que esa lógica es suficientemente compleja e independiente como para vivir en su propia clase.
+
+Caso donde los colaboradores son explícitos:
+
+```ts
+class DiscountCalculator {
+  apply(items: Item[]): Item[] { ... }
+}
+
+class TaxCalculator {
+  apply(items: Item[]): number { ... }
+}
+
+class PricingEngine {
+  constructor(
+    private discounts: DiscountCalculator,
+    private taxes: TaxCalculator
+  ) {}
+
+  calculateTotal(items: Item[]): number {
+    const discounted = this.discounts.apply(items);
+    return this.taxes.apply(discounted);
+  }
+}
+```
+
+Ahora `DiscountCalculator` y `TaxCalculator` se pueden testear de forma independiente. `PricingEngine` se puede testear con implementaciones en memoria. Nadie necesita romper el encapsulamiento porque cada concepto tiene su propio contrato.
+
+### Cuando el diseño funciona
+
+La señal de que el diseño está bien es que escribir el test resulta fluido. El setup es mínimo, los casos son pocos y el test se lee casi como documentación del comportamiento esperado.
+
+```ts
+it("debería rechazar un retiro si el saldo es insuficiente", () => {
+  const account = new Account({ balance: 50 });
+  expect(() => account.withdraw(100)).toThrow(InsufficientFundsError);
+});
+```
+
+Ese test no necesita base de datos, no necesita mocks, no necesita contexto externo. Se configura en una línea, actúa en una línea y verifica en una línea. Eso es posible porque el diseño de `Account` tiene responsabilidades claras, dependencias explícitas y un contrato bien definido.
+
+### Cómo se conecta con el resto de fundamentos
+
+Este artículo cierra la sección porque los tests hacen visible todo lo que se vio antes.
+
+* **Acoplamiento y cohesión:** un setup gigantesco delata acoplamiento alto. Demasiados escenarios en un mismo test delatan cohesión baja.
+* **SOLID:** el SRP aparece cuando una clase necesita demasiados tests. La inversión de dependencias aparece cuando no se puede reemplazar un colaborador en el test.
+* **Abstracciones:** la lógica inaccesible sin romper encapsulamiento suele indicar que falta extraer una abstracción con su propio contrato.
+* **Diseño de APIs y Contratos:** escribir el test antes de la implementación obliga a pensar primero en cómo se va a usar la clase, lo que produce interfaces más limpias y contratos más claros.
+* **Complejidad accidental:** si el test es complicado, probablemente el código también tiene complejidad accidental que el diseño no resolvió.
+
+### Regla práctica
+Si escribir el test duele, el diseño tiene un problema. La dificultad no es una razón para saltarse el test; es una invitación a mejorar el diseño primero.
+</DocsPageLayout>
