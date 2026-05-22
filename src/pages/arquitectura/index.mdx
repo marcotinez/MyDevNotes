@@ -1,0 +1,38 @@
+---
+navOrder: 0
+navLabel: "Introducción"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+
+<DocsPageLayout
+  title="Introducción a Arquitectura | MyDevNotes"
+  section="Arquitectura"
+  pageTitle="Introducción"
+  pageDescription="Cómo organizar un sistema para que escale, cambie y se entienda. Esta sección cubre los patrones de arquitectura más usados en proyectos reales, cuándo aplicar cada uno y cómo estructurar carpetas de forma sostenible."
+  nextPage={{ href: "/arquitectura/arquitectura-por-capas", label: "Arquitectura por Capas" }}
+>
+---
+`Arquitectura` responde la pregunta que aparece en todo proyecto que empieza a crecer: **¿dónde pongo las cosas?**
+
+No se trata solo de estructura de carpetas. Se trata de cómo separar responsabilidades a nivel de sistema para que el código sea navegable, testeable y modificable sin que cada cambio arrastre demasiadas piezas.
+
+## Qué cubre esta sección
+
+- Los patrones de arquitectura más usados en backend y cómo se comparan entre sí.
+- Cómo organizar un proyecto por módulos o features en lugar de por tipo técnico.
+- La diferencia práctica entre arquitectura hexagonal y clean architecture.
+- Cuándo un monolito bien diseñado es mejor que microservicios.
+- Cómo estructurar carpetas según el tipo y tamaño del proyecto.
+- Una introducción práctica a DDD: cuándo el modelo de datos debería hablar el idioma del negocio.
+
+## Por dónde conviene empezar
+
+El recorrido natural empieza por [Arquitectura por Capas](/arquitectura/arquitectura-por-capas), que es el patrón más común y el punto de partida más reconocible. Desde ahí cada artículo construye sobre el anterior, agregando herramientas para organizar sistemas más complejos.
+
+Si vienes de `Fundamentos`, la sección asume que ya hay criterio sobre acoplamiento, cohesión y responsabilidades. Los conceptos de esta sección son la aplicación de esas ideas a nivel de sistema completo.
+
+## Regla práctica
+
+La arquitectura correcta para un proyecto no es la más sofisticada. Es la más simple que aguanta las decisiones de cambio que el negocio realmente va a exigir.
+</DocsPageLayout>
