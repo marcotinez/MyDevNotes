@@ -1,0 +1,400 @@
+---
+navOrder: 6
+navLabel: "Estructura de Carpetas"
+---
+
+import DocsPageLayout from "/src/layouts/DocsPageLayout.astro";
+import FileTree from "/src/components/global/FileTree.astro";
+
+<DocsPageLayout
+  title="Estructura de Carpetas y Distribución de Código | MyDevNotes"
+  section="Arquitectura"
+  pageTitle="Estructura de Carpetas y Distribución de Código"
+  pageDescription="Cómo organizar físicamente el código para que cualquier ingeniero encuentre rápido lo que busca, respete los límites del sistema y no convierta el repositorio en un vertedero estructural."
+  prevPage={{ href: "/arquitectura/monolito-modular-vs-microservicios", label: "Monolito Modular vs. Microservicios" }}
+  nextPage={{ href: "/arquitectura/introduccion-a-ddd", label: "Introducción a DDD" }}
+>
+---
+La estructura de carpetas no es un detalle cosmético. Es una interfaz de navegación para el equipo.
+
+Cuando un proyecto está bien organizado, un desarrollador puede abrir el repositorio y encontrar en segundos dónde vive la lógica de negocio, dónde están los adaptadores técnicos y qué partes del sistema puede tocar sin romper límites que no le pertenecen. Cuando la estructura está mal, el costo se paga todos los días: más tiempo buscando, más imports cruzados, más carpetas genéricas saturadas y más discusiones inútiles sobre "dónde debería ir este archivo".
+
+La meta de una buena estructura no es impresionar. Es **reducir fricción operativa**.
+
+### Qué problema resuelve
+
+La mayoría de los repositorios no se degradan por una gran mala decisión inicial. Se degradan por pequeñas excepciones repetidas:
+
+* un `types/` global porque "por ahora es más rápido"
+* un `utils/` que se vuelve basurero
+* un `shared/` donde termina viviendo media aplicación
+* carpetas anidadas que tienen un solo archivo en el fondo
+* lógica de negocio mezclada con HTTP, ORM o componentes visuales
+
+Con el tiempo, la estructura deja de reflejar la arquitectura. Y cuando la estructura deja de reflejar la arquitectura, el código se vuelve más caro de navegar, revisar y refactorizar.
+
+### Tres reglas universales
+
+Antes de elegir cualquier plantilla, hay reglas que deberían mantenerse en cualquier stack.
+
+### 1. La lógica de negocio no flota por el repositorio
+
+Las reglas del negocio no deberían vivir en la raíz de `src/`, ni mezcladas con configuraciones de framework, ni escondidas en helpers genéricos.
+
+```ts
+// Incorrecto: logica de negocio perdida en un helper generico
+// src/utils/calculate-discount.ts
+export function calculateDiscount(customerType: string, total: number): number {
+  if (customerType === "premium" && total > 100) return total * 0.15;
+  return 0;
+}
+```
+
+Ese código parece inocente, pero ya contiene una regla del negocio. Si termina en `utils/`, nadie sabe realmente a qué módulo pertenece ni quién es responsable de cambiarlo.
+
+```ts
+// Correcto: la regla vive cerca del dominio que la necesita
+// src/modules/billing/domain/calculate-discount.ts
+export function calculateDiscount(customerType: string, total: number): number {
+  if (customerType === "premium" && total > 100) return total * 0.15;
+  return 0;
+}
+```
+
+La ubicación comunica ownership. Si el archivo tiene semántica de negocio, su carpeta también debe tenerla.
+
+### 2. Los tipos viven cerca de quien los usa
+
+Un error repetido es crear `src/types/`, `src/interfaces/` o `src/dtos/` como directorios globales. Eso convierte a los tipos en entidades flotantes, separadas del contexto que les da sentido.
+
+<FileTree
+  tree={`
+src/
+  types/
+    user.ts
+    order.ts
+    billing.ts
+  modules/
+`}
+/>
+
+Ese patrón escala mal porque obliga a saltar entre carpetas para entender algo que pertenece a un mismo concepto.
+
+Mejor regla:
+
+* Si el tipo pertenece a un archivo, va junto a ese archivo.
+* Si el tipo es compartido dentro de un módulo, va en la raíz del módulo.
+* Si el tipo es realmente transversal a toda la app, debe vivir en un recurso compartido explícito, no en una bolsa genérica.
+
+<FileTree
+  tree={`
+src/modules/users/
+  user.service.ts
+  user.repository.ts
+  user.types.ts
+  index.ts
+`}
+/>
+
+La cercanía física reduce contexto mental. Esa es la razón de fondo, no una preferencia estética.
+
+### 3. Tooling y runtime no son la misma cosa
+
+Hay una frontera clara entre archivos que configuran el ecosistema del proyecto y código que configura la aplicación al ejecutarse.
+
+| Tipo | Dónde vive | Ejemplos |
+| --- | --- | --- |
+| Tooling | Raíz del repo | `package.json`, `tsconfig.json`, `Dockerfile`, `eslint.config.js` |
+| Runtime | Dentro de `src/` | `src/config/env.ts`, `src/config/database.ts`, `src/config/http.ts` |
+
+Si un archivo participa en cómo se compila, testea o despliega el proyecto, vive afuera. Si participa en cómo corre la app, vive adentro.
+
+### Cómo elegir la estructura correcta
+
+No existe una única estructura correcta para cualquier proyecto. La estructura debería seguir el tamaño del sistema, la densidad del dominio y el nivel de coordinación del equipo.
+
+Una forma útil de pensarlo es esta:
+
+| Contexto | Estructura recomendada | Riesgo principal |
+| --- | --- | --- |
+| API pequeña o CRUD simple | Capas clásicas | Que siga creciendo y nadie la module a tiempo |
+| Backend en crecimiento | Modular por feature | Crear un `shared/` gigante que rompa el aislamiento |
+| Backend con dominio complejo | Hexagonal o limpia | Sobrecargar con capas si el dominio no lo justifica |
+| Frontend con muchas features | Feature-based | Saturar `components/` y mover la lógica fuera de contexto |
+| Múltiples apps compartiendo código | Monorepo con `apps/` y `packages/` | Convertir `packages/` en un basurero acoplado |
+
+### Template 1: Backend pequeño por capas
+
+Tiene sentido para servicios pequeños, CRUDs simples o proyectos en etapa temprana donde el costo de una modularización más fuerte todavía no se justifica.
+
+<FileTree
+  tree={`
+mi-api-pequena/
+  Dockerfile
+  package.json
+  tsconfig.json
+  src/
+    config/
+      database.ts
+    controllers/
+      user.controller.ts
+      auth.controller.ts
+    middlewares/
+      auth.middleware.ts
+    repositories/
+      user.repository.ts
+      product.repository.ts
+    services/
+      user.service.ts
+      product.service.ts
+    app.ts
+`}
+/>
+
+Funciona bien mientras el sistema siga siendo pequeño. La señal de que empieza a quedar corto no es el número de carpetas, sino la fricción:
+
+* cuesta seguir una funcionalidad de punta a punta
+* varias personas editan siempre las mismas carpetas genéricas
+* `services/` o `repositories/` se llenan de archivos sin relación cercana
+
+### Template 2: Backend modular por feature
+
+Cuando el proyecto crece, agrupar por tipo técnico deja de ayudar. En ese punto, la estructura por módulo suele ser el siguiente paso natural.
+
+<FileTree
+  tree={`
+mi-backend-modular/
+  package.json
+  src/
+    config/
+      environment.ts
+    modules/
+      users/
+        user.controller.ts
+        user.entity.ts
+        user.repository.ts
+        user.service.ts
+        user.types.ts
+      orders/
+        order.controller.ts
+        order.entity.ts
+        order.repository.ts
+        order.service.ts
+        order.types.ts
+    shared/
+      database/
+        prisma.service.ts
+    main.ts
+`}
+/>
+
+La ventaja es simple: todo lo de `users` vive junto. Todo lo de `orders` vive junto. Navegar se vuelve más rápido y el ownership más claro.
+
+Pero aquí aparece un riesgo clásico: usar `shared/` como agujero negro. Si medio sistema depende de cosas metidas ahí, la modularidad es solo decorativa.
+
+### Template 3: Backend complejo con hexagonal o limpia
+
+Cuando el dominio es denso y el aislamiento tecnológico importa de verdad, la estructura física también debe hacer visible la dirección de dependencias.
+
+<FileTree
+  tree={`
+mi-backend-complejo/
+  package.json
+  src/
+    domain/
+      entities/
+        user.entity.ts
+      value-objects/
+        email.vo.ts
+    application/
+      use-cases/
+        create-user.use-case.ts
+        get-user.use-case.ts
+      ports/
+        user-repository.port.ts
+    infrastructure/
+      http/
+        user.controller.ts
+        dtos/
+          create-user.dto.ts
+      persistence/
+        user-prisma.repository.ts
+        mappers/
+          user.mapper.ts
+      queue/
+        email-worker.ts
+      cronjob/
+        report.cron.ts
+    app.ts
+`}
+/>
+
+Esta estructura no es solo una forma de ordenar carpetas. Es una barrera física contra imports incorrectos.
+
+Si un archivo dentro de `domain/` necesita importar algo desde `infrastructure/`, el problema no es solo el import. El problema es el diseño.
+
+### Template 4: Frontend React orientado a features
+
+En frontend, el antipatrón clásico es un `components/` global con cientos de archivos sin contexto de negocio.
+
+<FileTree
+  tree={`
+mi-frontend-react/
+  vite.config.ts
+  src/
+    assets/
+      logo.svg
+    core/
+      config/
+        api.client.ts
+      theme/
+        global.css
+    features/
+      authentication/
+        components/
+          login-form.tsx
+          auth-button.tsx
+        hooks/
+          use-login.ts
+        services/
+          auth.api.ts
+        index.ts
+      dashboard/
+        components/
+        hooks/
+        index.ts
+    shared-components/
+      button.tsx
+      input.tsx
+    main.tsx
+`}
+/>
+
+La lógica importante aquí es separar:
+
+* UI transversal pura en `shared-components/`
+* código de negocio de una feature en `features/<feature>/`
+* infraestructura general del frontend en `core/`
+
+Eso evita que el estado, las llamadas a API y la UI de una misma funcionalidad queden desperdigados por todo el árbol.
+
+### Template 5: Monorepo con apps y packages
+
+Cuando conviven varias aplicaciones y parte del código debe compartirse, el monorepo deja de ser solo una conveniencia. Pasa a ser una forma explícita de modularizar artefactos compilables.
+
+<FileTree
+  tree={`
+mi-monorepo/
+  package.json
+  turbo.json
+  apps/
+    api-gateway/
+      src/
+    web-client/
+      src/
+    admin-panel/
+      src/
+  packages/
+    shared-dtos/
+      src/
+      package.json
+    ts-config/
+      base.json
+    ui-kit/
+      src/
+      package.json
+`}
+/>
+
+La regla práctica aquí es importante: `apps/` contiene unidades desplegables, `packages/` contiene librerías internas reutilizables.
+
+Si un paquete no tiene identidad clara ni consumidores reales, probablemente no debería existir todavía.
+
+### Errores comunes que degradan cualquier estructura
+
+No importa qué plantilla elijas. Estas son las señales de que el repositorio ya se está empezando a desordenar:
+
+### 1. El inquilino solitario
+
+Una carpeta creada para contener un solo archivo suele ser sobreestructura.
+
+<FileTree
+  tree={`
+src/
+  users/
+    services/
+      validators/
+        string/
+          user-string.validator.ts
+`}
+/>
+
+Si no hay una familia real de archivos con cohesión clara, esa profundidad solo agrega fricción. Las subcarpetas se justifican cuando organizan algo que ya existe, no cuando anticipan una complejidad imaginaria.
+
+### 2. Los directorios basurero
+
+Nombres como `utils/`, `helpers/`, `common/` o `shared/` no son malos por definición, pero tienden a convertirse en tierra de nadie.
+
+Cada archivo que entra ahí debería responder una pregunta concreta: ¿qué está compartiendo exactamente y por qué ese nivel de compartición es legítimo?
+
+Si no hay una respuesta precisa, ese archivo probablemente pertenece a un módulo más específico.
+
+### 3. Imports que rompen la arquitectura
+
+La estructura solo sirve si las dependencias la respetan.
+
+```ts
+// Incorrecto: domain importando infraestructura
+import { PrismaClient } from "../../infrastructure/persistence/prisma-client";
+```
+
+Ese import invalida toda la separación, aunque las carpetas sigan viéndose lindas.
+
+### 4. Compartir por comodidad, no por semántica
+
+Mover algo a `shared/` porque "lo usan dos lugares" suele ser una mala razón. Compartir solo tiene sentido cuando la abstracción realmente representa una responsabilidad transversal estable.
+
+Si no, lo que se comparte no es una abstracción. Es acoplamiento.
+
+### Cómo revisar que la estructura no se degrade
+
+La estructura no se mantiene sola. Hay que defenderla en revisión y, cuando el proyecto lo amerita, con reglas automáticas.
+
+Checklist útil para code review:
+
+* ¿La carpeta donde cae este archivo refleja realmente su responsabilidad?
+* ¿Se introdujo un `types/`, `interfaces/` o `dtos/` global sin necesidad real?
+* ¿Apareció una carpeta demasiado profunda para contener uno o dos archivos?
+* ¿Este cambio cruza imports entre módulos o capas que no deberían conocerse?
+* ¿Se está usando `shared/` para evitar pensar el límite correcto?
+
+Y cuando el proyecto ya es mediano o grande, conviene automatizar parte de esto con herramientas como `eslint-plugin-import` o `dependency-cruiser`.
+
+```js
+// Ejemplo conceptual: prohibir imports desde domain hacia infrastructure
+module.exports = {
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: ["**/infrastructure/**"],
+      },
+    ],
+  },
+};
+```
+
+No es la única manera de hacerlo, pero la idea es correcta: si el límite importa, no debería depender solo de memoria o buena voluntad.
+
+### Cómo se conecta
+
+* **Arquitectura modular:** la estructura física por módulos es la traducción concreta del principio de bajo acoplamiento entre dominios.
+* **Arquitectura limpia y hexagonal:** estas arquitecturas necesitan una estructura que haga visible la dirección de dependencias; si no, el diseño queda solo en el diagrama.
+* **Monolito modular vs. microservicios:** un monolito modular sano suele empezar con una buena estructura de carpetas; sin eso, extraer servicios después es mucho más costoso.
+* **Consistencia y convenciones:** una estructura consistente reduce tiempo de onboarding, discusión innecesaria y errores de navegación.
+* **Testing como señal de diseño:** si para testear algo necesitas cruzar media estructura del repositorio, el límite físico del código probablemente no acompaña al límite conceptual.
+
+### Regla práctica
+
+La mejor estructura de carpetas no es la más sofisticada. Es la que deja claro dónde vive cada responsabilidad, hace que los imports incorrectos se vean raros de inmediato y permite encontrar un archivo en menos de cinco segundos.
+</DocsPageLayout>
