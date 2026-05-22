@@ -13,44 +13,85 @@ interface Props {
   nextPage?: { href: string; label: string };
 }
 
-const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro.props;
+const { title, section, pageTitle, pageDescription, prevPage, nextPage } =
+  Astro.props;
 ---
 
 <HomeLayout title={title}>
   <div class="min-h-screen flex flex-col bg-background dark:bg-[#090a0d]">
     <Navbar />
-    <div class="flex-1 w-full xl:pl-sidebar_width bg-background dark:bg-[#090a0d]">
+    <div
+      class="flex-1 w-full xl:pl-sidebar_width bg-background dark:bg-[#090a0d]"
+    >
       <Sidebar />
-      <main class="w-full flex justify-center px-lg py-xl bg-background dark:bg-[#090a0d]">
-        <div class="w-full max-w-[1200px] min-h-[calc(100vh-64px-80px)] grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-xl">
-          <section class="min-w-0 flex flex-col gap-xl bg-background dark:bg-[#090a0d]">
-            <nav class="flex items-center gap-sm font-label-sm text-label-sm text-outline dark:text-slate-500 sticky top-[64px] bg-surface dark:bg-[#090a0d] z-40 py-sm">
-              <a class="hover:text-primary transition-colors" href="/">MyDevNotes</a>
+      <main
+        class="w-full flex justify-center px-lg py-xl bg-background dark:bg-[#090a0d]"
+      >
+        <div
+          class="w-full max-w-[1200px] min-h-[calc(100vh-64px-80px)] grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_280px] gap-xl"
+        >
+          <section
+            class="min-w-0 flex flex-col gap-xl bg-background dark:bg-[#090a0d]"
+          >
+            <nav
+              class="flex items-center gap-sm font-label-sm text-label-sm text-outline dark:text-slate-500 sticky top-[64px] bg-surface dark:bg-[#090a0d] z-40 py-sm"
+            >
+              <a class="hover:text-primary transition-colors" href="/"
+                >MyDevNotes</a
+              >
               <span>/</span>
-              <a class="hover:text-primary transition-colors" href="/inicio/bienvenida">{section}</a>
+              <a
+                class="hover:text-primary transition-colors"
+                href="/inicio/bienvenida">{section}</a
+              >
               <span>/</span>
-              <span class="text-on-surface dark:text-slate-100">{pageTitle}</span>
+              <span class="text-on-surface dark:text-slate-100"
+                >{pageTitle}</span
+              >
             </nav>
 
             <div data-pagefind-body class="flex flex-col gap-xl">
               <header class="flex flex-col gap-md">
-                <h1 class="font-headline-xl text-headline-xl text-on-background dark:text-slate-50">{pageTitle}</h1>
-                {pageDescription && (
-                  <p class="font-body-lg text-body-lg text-on-surface-variant dark:text-slate-300">{pageDescription}</p>
-                )}
+                <h1
+                  class="font-headline-xl text-headline-xl text-on-background dark:text-slate-50"
+                >
+                  {pageTitle}
+                </h1>
+                {
+                  pageDescription && (
+                    <p class="font-body-lg text-body-lg text-on-surface-variant dark:text-slate-300">
+                      {pageDescription}
+                    </p>
+                  )
+                }
               </header>
 
-              <details class="group xl:hidden border border-outline-variant/70 dark:border-slate-800 rounded-2xl bg-surface-container-lowest dark:bg-[#111319] shadow-sm" id="mobile-toc">
-                <summary class="list-none cursor-pointer flex items-center justify-between gap-sm px-md py-sm font-label-md text-label-md text-on-surface dark:text-slate-100">
+              <details
+                class="group xl:hidden border border-outline-variant/70 dark:border-slate-800 rounded-2xl bg-surface-container-lowest dark:bg-[#111319] shadow-sm"
+                id="mobile-toc"
+              >
+                <summary
+                  class="list-none cursor-pointer flex items-center justify-between gap-sm px-md py-sm font-label-md text-label-md text-on-surface dark:text-slate-100"
+                >
                   <span class="flex items-center gap-sm">
-                    <span class="material-symbols-outlined text-[20px]">toc</span>
+                    <span class="material-symbols-outlined text-[20px]"
+                      >toc</span
+                    >
                     <span>En esta página</span>
                   </span>
-                  <span class="material-symbols-outlined text-[18px] transition-transform group-open:rotate-180">expand_more</span>
+                  <span
+                    class="material-symbols-outlined text-[18px] transition-transform group-open:rotate-180"
+                    >expand_more</span
+                  >
                 </summary>
-                <div class="px-md pb-md pt-xs border-t border-outline-variant/50 dark:border-slate-800">
+                <div
+                  class="px-md pb-md pt-xs border-t border-outline-variant/50 dark:border-slate-800"
+                >
                   <ul data-mobile-toc-list class="space-y-xs"></ul>
-                  <p data-mobile-toc-empty class="font-body-sm text-body-sm text-on-surface-variant dark:text-slate-400">
+                  <p
+                    data-mobile-toc-empty
+                    class="font-body-sm text-body-sm text-on-surface-variant dark:text-slate-400"
+                  >
                     No hay secciones en este artículo.
                   </p>
                 </div>
@@ -64,41 +105,56 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
               </article>
             </div>
 
-            {(prevPage || nextPage) && (
-              <nav class="mt-auto pt-md border-t border-outline-variant/70 dark:border-slate-800">
-                <div class="flex items-center justify-between gap-md">
-                {prevPage ? (
-                  <a
-                    href={prevPage.href}
-                    class="inline-flex items-center gap-xs rounded-lg border border-primary/40 dark:border-[#29437a] bg-surface-container-lowest dark:bg-[#111319] px-md py-sm text-primary dark:text-[#8ab0ff] hover:bg-primary hover:text-on-primary dark:hover:bg-[#16284e] dark:hover:text-slate-100 transition-colors font-label-md text-label-md"
-                  >
-                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                    <span>Anterior: {prevPage.label}</span>
-                  </a>
-                ) : (
-                  <span />
-                )}
-                {nextPage ? (
-                  <a
-                    href={nextPage.href}
-                    class="inline-flex items-center gap-xs rounded-lg border border-primary dark:border-[#3560b8] bg-primary dark:bg-[#1d4ed8] text-on-primary dark:text-white px-md py-sm hover:bg-primary-container hover:text-on-primary-container dark:hover:bg-[#2563eb] dark:hover:text-white transition-colors font-label-md text-label-md"
-                  >
-                    <span>Siguiente: {nextPage.label}</span>
-                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-                  </a>
-                ) : (
-                  <span />
-                )}
-                </div>
-              </nav>
-            )}
+            {
+              (prevPage || nextPage) && (
+                <nav class="mt-auto pt-md border-t border-outline-variant/70 dark:border-slate-800">
+                  <div class="flex items-center justify-between gap-md">
+                    {prevPage ? (
+                      <a
+                        href={prevPage.href}
+                        class="inline-flex items-center gap-xs rounded-lg border border-primary/40 dark:border-[#29437a] bg-surface-container-lowest dark:bg-[#111319] px-md py-sm text-primary dark:text-[#8ab0ff] hover:bg-primary hover:text-on-primary dark:hover:bg-[#16284e] dark:hover:text-slate-100 transition-colors font-label-md text-label-md"
+                      >
+                        <span class="material-symbols-outlined text-[18px]">
+                          arrow_back
+                        </span>
+                        <span>Anterior: {prevPage.label}</span>
+                      </a>
+                    ) : (
+                      <span />
+                    )}
+                    {nextPage ? (
+                      <a
+                        href={nextPage.href}
+                        class="inline-flex items-center gap-xs rounded-lg border border-primary dark:border-[#3560b8] bg-primary dark:bg-[#1d4ed8] text-on-primary dark:text-white px-md py-sm hover:bg-primary-container hover:text-on-primary-container dark:hover:bg-[#2563eb] dark:hover:text-white transition-colors font-label-md text-label-md"
+                      >
+                        <span>Siguiente: {nextPage.label}</span>
+                        <span class="material-symbols-outlined text-[18px]">
+                          arrow_forward
+                        </span>
+                      </a>
+                    ) : (
+                      <span />
+                    )}
+                  </div>
+                </nav>
+              )
+            }
           </section>
 
           <aside class="hidden xl:block">
-            <div class="sticky top-[164px] max-h-[calc(100vh-178px)] overflow-auto border-l border-outline-variant/70 dark:border-slate-800 pl-md">
-              <h2 class="font-body-md text-body-md font-bold text-on-surface dark:text-slate-100 mb-sm">En esta página</h2>
+            <div
+              class="sticky top-[164px] max-h-[calc(100vh-178px)] overflow-auto border-l border-outline-variant/70 dark:border-slate-800 pl-md"
+            >
+              <h2
+                class="font-body-md text-body-md font-bold text-on-surface dark:text-slate-100 mb-sm"
+              >
+                En esta página
+              </h2>
               <ul data-toc-list class="space-y-xs"></ul>
-              <p data-toc-empty class="font-body-sm text-body-sm text-on-surface-variant dark:text-slate-400">
+              <p
+                data-toc-empty
+                class="font-body-sm text-body-sm text-on-surface-variant dark:text-slate-400"
+              >
                 No hay secciones en este artículo.
               </p>
             </div>
@@ -116,6 +172,7 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
       if (preEl.dataset.copyReady === "true") return;
       const codeEl = preEl.querySelector("code");
       if (!codeEl) return;
+      if (preEl.getAttribute("data-language") === "mermaid") return;
 
       preEl.dataset.copyReady = "true";
       preEl.classList.add("relative");
@@ -212,7 +269,11 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
         }
         button.addEventListener("click", () => {
           heading.scrollIntoView({ behavior: "smooth", block: "start" });
-          history.replaceState(null, "", window.location.pathname + window.location.search);
+          history.replaceState(
+            null,
+            "",
+            window.location.pathname + window.location.search,
+          );
           mobileToc?.removeAttribute("open");
         });
         item.appendChild(button);
@@ -222,7 +283,11 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
         const mobileButton = button.cloneNode(true);
         mobileButton.addEventListener("click", () => {
           heading.scrollIntoView({ behavior: "smooth", block: "start" });
-          history.replaceState(null, "", window.location.pathname + window.location.search);
+          history.replaceState(
+            null,
+            "",
+            window.location.pathname + window.location.search,
+          );
           mobileToc?.removeAttribute("open");
         });
         mobileItem.appendChild(mobileButton);
@@ -230,7 +295,9 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
       });
 
       const buttons = Array.from(tocList.querySelectorAll("button"));
-      const mobileButtons = Array.from(mobileTocList.querySelectorAll("button"));
+      const mobileButtons = Array.from(
+        mobileTocList.querySelectorAll("button"),
+      );
       buttons.forEach((button) => {
         button.classList.add("text-on-surface-variant", "dark:text-slate-400");
       });
@@ -244,5 +311,62 @@ const { title, section, pageTitle, pageDescription, prevPage, nextPage } = Astro
       mobileTocList.classList.add("hidden");
       mobileToc?.classList.add("hidden");
     }
+  }
+</script>
+
+<script>
+  import mermaid from "mermaid";
+
+  const renderMermaid = async () => {
+    const blocks: NodeListOf<HTMLPreElement> = document.querySelectorAll(
+      'article pre[data-language="mermaid"]',
+    );
+    const items: { div: HTMLDivElement; code: string }[] = [];
+
+    blocks.forEach((pre) => {
+      const codeEl = pre.querySelector("code");
+      const lines = codeEl?.querySelectorAll(".line");
+      const code =
+        lines && lines.length > 0
+          ? Array.from(lines)
+              .map((l) => l.textContent ?? "")
+              .join("\n")
+          : (codeEl?.textContent ?? "");
+      const div = document.createElement("div");
+      div.className =
+        "not-prose my-8 flex justify-center overflow-x-auto rounded-xl";
+      pre.replaceWith(div);
+      items.push({ div, code });
+    });
+
+    if (items.length === 0) return;
+
+    const isDark = document.documentElement.classList.contains("dark");
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isDark ? "dark" : "neutral",
+      securityLevel: "loose",
+      fontFamily: "Geist, system-ui, sans-serif",
+    });
+
+    for (const { div, code } of items) {
+      const id = `mermaid-${Math.random().toString(36).slice(2, 9)}`;
+      try {
+        const { svg } = await mermaid.render(id, code);
+        div.innerHTML = svg;
+      } catch (err) {
+        console.error("[mermaid] render error", err);
+        const fallback = document.createElement("pre");
+        fallback.textContent = code;
+        div.appendChild(fallback);
+      }
+    }
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", renderMermaid);
+  } else {
+    renderMermaid();
   }
 </script>
