@@ -1,0 +1,126 @@
+---
+import FileTreeNode from "./FileTreeNode.astro";
+
+interface TreeNode {
+  comment?: string;
+  children?: TreeNode[];
+  icon: string;
+  isDir: boolean;
+  label: string;
+}
+
+interface Props {
+  tree: string;
+}
+
+const { tree } = Astro.props;
+
+const iconForFile = (label: string) => {
+  const lower = label.toLowerCase();
+
+  if (lower === "dockerfile") return "deployed_code";
+  if (lower.endsWith(".astro") || lower.endsWith(".mdx") || lower.endsWith(".md")) {
+    return "article";
+  }
+  if (
+    lower.endsWith(".ts") ||
+    lower.endsWith(".tsx") ||
+    lower.endsWith(".js") ||
+    lower.endsWith(".jsx")
+  ) {
+    return "code";
+  }
+  if (
+    lower.endsWith(".json") ||
+    lower.endsWith(".yml") ||
+    lower.endsWith(".yaml") ||
+    lower.endsWith(".toml") ||
+    lower.endsWith(".ini")
+  ) {
+    return "data_object";
+  }
+  if (lower.endsWith(".css") || lower.endsWith(".scss")) return "palette";
+  if (
+    lower.endsWith(".svg") ||
+    lower.endsWith(".png") ||
+    lower.endsWith(".jpg") ||
+    lower.endsWith(".jpeg") ||
+    lower.endsWith(".webp")
+  ) {
+    return "image";
+  }
+
+  return "description";
+};
+
+const flatNodes = tree
+  .split("\n")
+  .map((line) => line.replace(/\r/g, ""))
+  .filter((line) => line.trim().length > 0)
+  .map((line) => {
+    const expanded = line.replace(/\t/g, "  ");
+    const leadingWhitespace = expanded.match(/^\s*/)?.[0].length ?? 0;
+    const depth = Math.floor(leadingWhitespace / 2);
+    const rawContent = expanded.trim();
+
+    let label = rawContent;
+    let comment: string | undefined;
+
+    if (rawContent.includes(" # ")) {
+      [label, comment] = rawContent.split(/\s+#\s+/, 2);
+    } else if (rawContent.includes(" // ")) {
+      [label, comment] = rawContent.split(/\s+\/\/\s+/, 2);
+    }
+
+    const isDir = label.endsWith("/");
+
+    return {
+      comment,
+      depth,
+      icon: isDir ? "folder" : iconForFile(label),
+      isDir,
+      label: isDir ? label.slice(0, -1) : label,
+    };
+  });
+
+const roots: TreeNode[] = [];
+const stack: Array<{ depth: number; node: TreeNode }> = [];
+
+for (const flatNode of flatNodes) {
+  const node: TreeNode = {
+    comment: flatNode.comment,
+    children: flatNode.isDir ? [] : undefined,
+    icon: flatNode.icon,
+    isDir: flatNode.isDir,
+    label: flatNode.label,
+  };
+
+  while (stack.length > 0 && stack[stack.length - 1].depth >= flatNode.depth) {
+    stack.pop();
+  }
+
+  const parent = stack[stack.length - 1];
+
+  if (parent) {
+    parent.node.children ??= [];
+    parent.node.children.push(node);
+  } else {
+    roots.push(node);
+  }
+
+  if (node.isDir) {
+    stack.push({ depth: flatNode.depth, node });
+  }
+}
+---
+
+<div class="not-prose overflow-hidden rounded-2xl border border-outline-variant/70 dark:border-slate-800 bg-surface-container-lowest dark:bg-[#0f131a] shadow-sm">
+  <div class="border-b border-outline-variant/60 dark:border-slate-800 px-md py-sm bg-surface-container-low dark:bg-[#131923]">
+    <span class="font-label-md text-label-md text-on-surface dark:text-slate-100">
+      Estructura
+    </span>
+  </div>
+  <div class="p-md">
+    {roots.map((node) => <FileTreeNode node={node} />)}
+  </div>
+</div>

@@ -1,0 +1,73 @@
+---
+interface TreeNode {
+  comment?: string;
+  children?: TreeNode[];
+  icon: string;
+  isDir: boolean;
+  label: string;
+}
+
+interface Props {
+  depth?: number;
+  node: TreeNode;
+}
+
+const { node, depth = 0 } = Astro.props;
+const hasChildren = node.isDir && (node.children?.length ?? 0) > 0;
+---
+
+{
+  node.isDir ? (
+    <details
+      open
+      class="group"
+      style={`margin-left: ${depth * 1.1}rem;`}
+    >
+      <summary class="flex cursor-pointer list-none items-start gap-sm rounded-lg px-sm py-1.5 transition-colors hover:bg-surface-container dark:hover:bg-[#171d29]">
+        <span class="material-symbols-outlined mt-[2px] shrink-0 text-[18px] leading-none text-amber-600 dark:text-amber-400 group-open:hidden">
+          folder
+        </span>
+        <span class="material-symbols-outlined mt-[2px] hidden shrink-0 text-[18px] leading-none text-amber-600 dark:text-amber-400 group-open:inline-block">
+          folder_open
+        </span>
+        <code class="bg-transparent p-0 font-code-block text-[13px] leading-6 text-on-surface dark:text-slate-100">
+          {node.label}/
+        </code>
+        {
+          node.comment && (
+            <span class="min-w-0 font-body-sm text-[12px] leading-6 text-on-surface-variant dark:text-slate-400">
+              {node.comment}
+            </span>
+          )
+        }
+      </summary>
+
+      {
+        hasChildren && (
+          <div class="mt-0.5">
+            {node.children!.map((child) => <Astro.self node={child} depth={depth + 1} />)}
+          </div>
+        )
+      }
+    </details>
+  ) : (
+    <div
+      class="flex items-start gap-sm rounded-lg px-sm py-1.5 transition-colors hover:bg-surface-container dark:hover:bg-[#171d29]"
+      style={`margin-left: ${depth * 1.1}rem;`}
+    >
+      <span class="material-symbols-outlined mt-[2px] shrink-0 text-[18px] leading-none text-slate-600 dark:text-slate-400">
+        {node.icon}
+      </span>
+      <code class="bg-transparent p-0 font-code-block text-[13px] leading-6 text-on-surface dark:text-slate-100">
+        {node.label}
+      </code>
+      {
+        node.comment && (
+          <span class="min-w-0 font-body-sm text-[12px] leading-6 text-on-surface-variant dark:text-slate-400">
+            {node.comment}
+          </span>
+        )
+      }
+    </div>
+  )
+}
